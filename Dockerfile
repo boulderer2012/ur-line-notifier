@@ -1,9 +1,9 @@
 FROM python:3.10-slim
 
-# 必要なパッケージをインストール
+# 必要なパッケージをインストール（chromiumとchromedriverを含む）
 RUN apt-get update && apt-get install -y \
-    chromium-driver \
     chromium \
+    chromium-driver \
     fonts-liberation \
     libnss3 \
     libxss1 \
@@ -16,9 +16,9 @@ RUN apt-get update && apt-get install -y \
     unzip \
     && rm -rf /var/lib/apt/lists/*
 
-# 環境変数でChromeのパスを指定
-ENV CHROME_BIN=/usr/bin/chromium
-ENV CHROMEDRIVER_PATH=/usr/bin/chromedriver
+# ChromeとChromeDriverのパスを確認して環境変数に設定
+ENV CHROME_BIN=/usr/lib/chromium/chromium
+ENV CHROMEDRIVER_PATH=/usr/lib/chromium/chromedriver
 
 # 作業ディレクトリ
 WORKDIR /app
