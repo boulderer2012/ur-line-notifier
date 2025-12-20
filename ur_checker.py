@@ -9,6 +9,8 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from datetime import datetime
+import pytz
 
 # 永続ディスクのパス 
 DATA_PATH = "/data/previous.json"
@@ -87,6 +89,11 @@ def detect_new_listings(current, previous):
     return [item for item in current if item["title"] not in previous_titles]
 
 def main():
+    # JSTの現在時刻を取得
+    jst = pytz.timezone('Asia/Tokyo')
+    now = datetime.now(jst)
+    print(f"🕒 チェック実行時刻（JST）: {now.strftime('%Y-%m-%d %H:%M:%S')}")
+
     current = fetch_ur_listings()
     previous = load_previous()
     new_list = detect_new_listings(current, previous)
@@ -95,7 +102,7 @@ def main():
 
     if new_list:
         print(f"🔔 {len(new_list)} 件の新着物件を検出！")
-        message = "🏠 新着物件一覧（最新5件）：\n\n"
+        message = f"🏠 新着物件一覧（{now.strftime('%Y/%m/%d %H:%M')} 時点）\n\n"
         for item in new_list[:MAX_ITEMS]:
             message += f"{item['title']}\n{item['url']}\n\n"
         send_line_message(message.strip())
@@ -105,4 +112,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
