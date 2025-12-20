@@ -33,11 +33,7 @@ def create_driver():
     options.add_argument("--headless")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--blink-settings=imagesEnabled=false")
-    options.binary_location = os.environ.get("CHROME_BIN", "/usr/bin/chromium")
-
-    service = Service(executable_path=os.environ.get("CHROMEDRIVER_PATH", "/usr/bin/chromedriver"))
-    driver = webdriver.Chrome(service=service, options=options)
+    driver = webdriver.Chrome(options=options)
     return driver
 
 def fetch_ur_listings():
@@ -103,5 +99,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
