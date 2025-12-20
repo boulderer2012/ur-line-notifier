@@ -2,6 +2,7 @@ import os
 import json
 import time
 import requests
+import pytz
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -10,7 +11,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from datetime import datetime
-import pytz
 
 # 永続ディスクのパス 
 DATA_PATH = "/data/previous.json"
@@ -112,5 +112,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
