@@ -101,17 +101,19 @@ def main():
     previous = load_previous()
     new_list = detect_new_listings(current, previous)
 
-    if new_list:
-        print(f"🔔 {len(new_list)} 件の新着物件を検出！")
-        for item in new_list:
-            message = f"🏠 新着物件！\n{item['title']}\n{item['url']}"
-            send_line_message(message)
-        save_current(current)
-    else:
-        print("📭 新着なし〜")
+if new_list:
+    print(f"🔔 {len(new_list)} 件の新着物件を検出！")
+    message = "🏠 新着物件一覧：\n\n"
+    for item in new_list:
+        message += f"{item['title']}\n{item['url']}\n\n"
+    send_line_message(message.strip())
+    save_current(current)
+else:
+    print("📭 新着なし〜")
 
 if __name__ == "__main__":
     main()
+
 
 
 
