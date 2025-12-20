@@ -1,0 +1,13 @@
+name: Ping Render Daily
+
+on:
+  schedule:
+    - cron: '0 23 * * *'  # JST 8:00（RenderはUTC）
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wake up Render
+        run: curl https://your-render-service.onrender.com
