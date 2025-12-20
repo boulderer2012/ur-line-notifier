@@ -2,7 +2,7 @@ name: Ping Render Daily
 
 on:
   schedule:
-    - cron: '0 23 * * *'  # JST 8:00（RenderはUTC）
+    - cron: '0 3 * * *'  # JST 12:00（RenderはUTC）
   workflow_dispatch:
 
 jobs:
