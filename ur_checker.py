@@ -10,6 +10,19 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
+# 永続ディスクのパス 
+DATA_PATH = "/data/previous.json"
+
+def load_previous(): 
+    if os.path.exists(DATA_PATH):
+        with open(DATA_PATH, "r", encoding="utf-8") as f:
+            return json.load(f)
+        return [] 
+
+def save_current(data):
+    with open(DATA_PATH, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+        
 # LINE設定（Renderでは環境変数で管理するのが安全！）
 CHANNEL_ACCESS_TOKEN = os.environ.get("CHANNEL_ACCESS_TOKEN")
 USER_ID = os.environ.get("USER_ID")
@@ -99,6 +112,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
