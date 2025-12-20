@@ -17,12 +17,12 @@ def load_previous():
     if os.path.exists(DATA_PATH):
         with open(DATA_PATH, "r", encoding="utf-8") as f:
             return json.load(f)
-        return [] 
+    return []  # ← インデント修正！
 
 def save_current(data):
     with open(DATA_PATH, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
-        
+
 # LINE設定（Renderでは環境変数で管理するのが安全！）
 CHANNEL_ACCESS_TOKEN = os.environ.get("CHANNEL_ACCESS_TOKEN")
 USER_ID = os.environ.get("USER_ID")
@@ -82,16 +82,6 @@ def fetch_ur_listings():
             listings.append({"title": text, "url": base_url + href})
     return listings
 
-def load_previous():
-    if os.path.exists("previous.json"):
-        with open("previous.json", "r", encoding="utf-8") as f:
-            return json.load(f)
-    return []
-
-def save_current(data):
-    with open("previous.json", "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
-
 def detect_new_listings(current, previous):
     previous_titles = {item["title"] for item in previous}
     return [item for item in current if item["title"] not in previous_titles]
@@ -101,20 +91,15 @@ def main():
     previous = load_previous()
     new_list = detect_new_listings(current, previous)
 
-if new_list:
-    print(f"🔔 {len(new_list)} 件の新着物件を検出！")
-    message = "🏠 新着物件一覧：\n\n"
-    for item in new_list:
-        message += f"{item['title']}\n{item['url']}\n\n"
-    send_line_message(message.strip())
-    save_current(current)
-else:
-    print("📭 新着なし〜")
+    if new_list:
+        print(f"🔔 {len(new_list)} 件の新着物件を検出！")
+        message = "🏠 新着物件一覧：\n\n"
+        for item in new_list:
+            message += f"{item['title']}\n{item['url']}\n\n"
+        send_line_message(message.strip())
+        save_current(current)
+    else:
+        print("📭 新着なし〜")
 
 if __name__ == "__main__":
     main()
-
-
-
-
-
