@@ -10,9 +10,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-# LINE設定
-CHANNEL_ACCESS_TOKEN = 'me2oYNhNaPds9QcrFaz9r9dQXpl3ES7cDVJ+fi0N4aCbguag0tKl4W9BKEMOoLY9dhSuY239HMD+RkyhA8rlX7t3nIld6JH1s5UJHDIGu51TDAPh5EQ2p66q9FERS3iziROPKUJwNp/4djpYTsWgPwdB04t89/1O/w1cDnyilFU='
-USER_ID = 'U70bcd6fc61098e0b980e9292e6083bcd'
+# LINE設定（Renderでは環境変数で管理するのが安全！）
+CHANNEL_ACCESS_TOKEN = os.environ.get("CHANNEL_ACCESS_TOKEN")
+USER_ID = os.environ.get("USER_ID")
 
 def send_line_message(message):
     url = 'https://api.line.me/v2/bot/message/push'
@@ -28,14 +28,21 @@ def send_line_message(message):
     print(f'📤 ステータスコード: {response.status_code}')
     print(f'📨 レスポンス: {response.text}')
 
-def fetch_ur_listings():
-    chrome_driver_path = "C:\\Temp\\UR賃貸スクレイピング\\chromedriver.exe"
-    url = "https://www.ur-net.go.jp/chintai/information/"
+def create_driver():
     options = Options()
     options.add_argument("--headless")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--blink-settings=imagesEnabled=false")
-    service = Service(executable_path=chrome_driver_path)
+    options.binary_location = os.environ.get("CHROME_BIN", "/usr/bin/chromium")
+
+    service = Service(executable_path=os.environ.get("CHROMEDRIVER_PATH", "/usr/bin/chromedriver"))
     driver = webdriver.Chrome(service=service, options=options)
+    return driver
+
+def fetch_ur_listings():
+    url = "https://www.ur-net.go.jp/chintai/information/"
+    driver = create_driver()
     driver.get(url)
     wait = WebDriverWait(driver, 10)
 
