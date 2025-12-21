@@ -38,10 +38,22 @@ def save_current(data):
     with open(DATA_PATH, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
-# 新着物件を検出
+# 新着物件と更新情報を分類して検出
 def detect_new_listings(current, previous):
     previous_titles = {item["title"] for item in previous}
-    return [item for item in current if item["title"] not in previous_titles]
+    new_items = [item for item in current if item["title"] not in previous_titles]
+
+    new_arrivals = []
+    updates = []
+
+    for item in new_items:
+        title = item["title"]
+        if "新規入居者募集" in title:
+            new_arrivals.append(item)
+        elif any(kw in title for kw in ["抽選募集", "応募状況", "抽選結果"]):
+            updates.append(item)
+
+    return new_arrivals, updates
 
 # Renderを起動（Webhookを叩く）
 def ping_render():
@@ -58,11 +70,18 @@ def ping_render():
 def main():
     current = fetch_ur_listings()
     previous = load_previous()
-    new_list = detect_new_listings(current, previous)
+    new_arrivals, updates = detect_new_listings(current, previous)
 
-    if new_list:
-        print(f"🔔 新着物件 {len(new_list)} 件検出！Renderを起動します！")
+    if new_arrivals:
+        print(f"🔔 新着物件 {len(new_arrivals)} 件検出！Renderを起動します！")
+        for item in new_arrivals:
+            print(f"・{item['title']}")
         ping_render()
+        save_current(current)
+    elif updates:
+        print(f"📄 更新情報 {len(updates)} 件ありました（Renderは起動しません）")
+        for item in updates:
+            print(f"・{item['title']}")
         save_current(current)
     else:
         print("📭 新着なし。Renderは起動しません。")
