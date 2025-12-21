@@ -84,22 +84,37 @@ def format_message(header, items):
     return "\n".join(lines)
 
 def main():
-    current = fetch_ur_listings()
+    # current = fetch_ur_listings()
+    current = [
+        # 新着物件（新規入居者募集）
+        {
+            "title": "新築賃貸住宅「テストヒルズ」新規入居者募集について",
+            "url": "https://example.com/new"
+        },
+        # 更新情報（抽選結果）
+        {
+            "title": "新築賃貸住宅「テストタワー」抽選結果について（抽選日:12/20）",
+            "url": "https://example.com/update"
+        },
+        # すでにあるデータ（無視されるはず）
+        {
+            "title": "新築賃貸住宅「テストタワー」抽選募集について（令和7年12月1日時点）",
+            "url": "https://example.com/old"
+        }
+    ]
+
     previous = load_previous()
     new_arrivals, updates = detect_new_listings(current, previous)
 
+    print(f"🧪 new_arrivals: {len(new_arrivals)} 件")
+    print(f"🧪 updates: {len(updates)} 件")
+
     if new_arrivals:
-        print(f"🔔 新着物件 {len(new_arrivals)} 件検出！Renderを起動します！")
-        for item in new_arrivals:
-            print(f"・{item['title']}")
         save_json(NEW_ARRIVALS_PATH, new_arrivals)
         notify_line(format_message("🔔 新着物件のお知らせ", new_arrivals))
         ping_render()
         save_json(DATA_PATH, current)
     elif updates:
-        print(f"📄 更新情報 {len(updates)} 件ありました（Renderは起動しません）")
-        for item in updates:
-            print(f"・{item['title']}")
         save_json(UPDATES_PATH, updates)
         notify_line(format_message("📄 更新情報のお知らせ", updates))
         save_json(DATA_PATH, current)
