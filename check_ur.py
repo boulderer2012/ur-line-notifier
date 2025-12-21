@@ -62,39 +62,32 @@ def ping_render():
 
 def notify_line(message):
     token = os.environ.get("LINE_CHANNEL_ACCESS_TOKEN")
-    user_id = os.environ.get("LINE_USER_ID")
     group_id = os.environ.get("LINE_GROUP_ID")
-    if group_id:
-        print(f"🔍 LINE_GROUP_ID preview: {group_id[:5]}...{group_id[-5:]}")
-    else:
-        print("❌ LINE_GROUP_ID is None")
 
-    if not token:
-        print("❌ トークン未設定")
+    if not token or not group_id:
+        print("❌ LINE_CHANNEL_ACCESS_TOKEN または LINE_GROUP_ID が設定されていません")
         return
 
     headers = {
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/json"
     }
+    data = {
+        "to": group_id,
+        "messages": [
+            {
+                "type": "text",
+                "text": message
+            }
+        ]
+    }
 
-    for target, name in [(user_id, "個人"), (group_id, "グループ")]:
-        if not target:
-            print(f"⚠️ {name}ID未設定")
-            continue
-        data = {
-            "to": target,
-            "messages": [
-                {
-                    "type": "text",
-                    "text": f"{name}宛てテスト通知です📩"
-                }
-            ]
-        }
+    try:
         res = requests.post("https://api.line.me/v2/bot/message/push", headers=headers, json=data)
-        print(f"📩 {name}通知ステータス: {res.status_code}")
+        print(f"📢 LINEグループ通知送信！ステータス: {res.status_code}")
         print(res.text)
-        print(f"🔎 LINE_GROUP_ID: {repr(os.environ.get('LINE_GROUP_ID'))}")
+    except Exception as e:
+        print(f"⚠️ LINEグループ通知に失敗: {e}")
 
 def format_message(header, items):
     lines = [header]
@@ -103,30 +96,12 @@ def format_message(header, items):
     return "\n".join(lines)
 
 def main():
-    # current = fetch_ur_listings()
-    current = [
-        # 新着物件（新規入居者募集）
-        {
-            "title": "新築賃貸住宅「テストヒルズ」新規入居者募集について",
-            "url": "https://example.com/new"
-        },
-        # 更新情報（抽選結果）
-        {
-            "title": "新築賃貸住宅「テストタワー」抽選結果について（抽選日:12/20）",
-            "url": "https://example.com/update"
-        },
-        # すでにあるデータ（無視されるはず）
-        {
-            "title": "新築賃貸住宅「テストタワー」抽選募集について（令和7年12月1日時点）",
-            "url": "https://example.com/old"
-        }
-    ]
-
+    current = fetch_ur_listings()
     previous = load_previous()
     new_arrivals, updates = detect_new_listings(current, previous)
 
-    print(f"🧪 new_arrivals: {len(new_arrivals)} 件")
-    print(f"🧪 updates: {len(updates)} 件")
+    print(f"🌿 new_arrivals: {len(new_arrivals)} 件")
+    print(f"🌿 updates: {len(updates)} 件")
 
     if new_arrivals:
         save_json(NEW_ARRIVALS_PATH, new_arrivals)
