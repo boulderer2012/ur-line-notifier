@@ -61,11 +61,11 @@ def ping_render():
         print(f"⚠️ Render起動に失敗: {e}")
 
 def notify_line(message):
-    token = os.environ.get("LINE_CHANNEL_ACCESS_TOKEN")  # ← Messaging API用のトークン
-    user_id = os.environ.get("LINE_USER_ID")  # ← 自分のLINEユーザーID
+    token = os.environ.get("LINE_CHANNEL_ACCESS_TOKEN")
+    group_id = os.environ.get("LINE_GROUP_ID")
 
-    if not token or not user_id:
-        print("❌ LINE_CHANNEL_ACCESS_TOKEN または LINE_USER_ID が設定されていません")
+    if not token or not group_id:
+        print("❌ LINE_CHANNEL_ACCESS_TOKEN または LINE_GROUP_ID が設定されていません")
         return
 
     headers = {
@@ -73,7 +73,7 @@ def notify_line(message):
         "Content-Type": "application/json"
     }
     data = {
-        "to": user_id,
+        "to": group_id,
         "messages": [
             {
                 "type": "text",
@@ -84,10 +84,10 @@ def notify_line(message):
 
     try:
         res = requests.post("https://api.line.me/v2/bot/message/push", headers=headers, json=data)
-        print(f"📩 LINE Bot通知送信！ステータス: {res.status_code}")
+        print(f"📩 LINEグループ通知送信！ステータス: {res.status_code}")
         print(res.text)
     except Exception as e:
-        print(f"⚠️ LINE Bot通知に失敗: {e}")
+        print(f"⚠️ LINEグループ通知に失敗: {e}")
 
 def format_message(header, items):
     lines = [header]
