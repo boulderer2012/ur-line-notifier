@@ -90,6 +90,7 @@ def notify_line(message):
         res = requests.post("https://api.line.me/v2/bot/message/push", headers=headers, json=data)
         print(f"📩 {name}通知ステータス: {res.status_code}")
         print(res.text)
+        print(f"🔎 LINE_GROUP_ID: {repr(os.environ.get('LINE_GROUP_ID'))}")
 
 def format_message(header, items):
     lines = [header]
