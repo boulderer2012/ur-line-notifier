@@ -64,6 +64,10 @@ def notify_line(message):
     token = os.environ.get("LINE_CHANNEL_ACCESS_TOKEN")
     user_id = os.environ.get("LINE_USER_ID")
     group_id = os.environ.get("LINE_GROUP_ID")
+    if group_id:
+        print(f"🔍 LINE_GROUP_ID preview: {group_id[:5]}...{group_id[-5:]}")
+    else:
+        print("❌ LINE_GROUP_ID is None")
 
     if not token:
         print("❌ トークン未設定")
