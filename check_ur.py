@@ -113,7 +113,7 @@ def main():
         notify_line(format_message("📄 更新情報のお知らせ", updates))
         save_json(DATA_PATH, current)
     else:
-        print("📭 新着なし。Renderは起動しません。")
+        print("📭 新着も更新もなし。また明日チェックするね！")
 
 if __name__ == "__main__":
     main()
