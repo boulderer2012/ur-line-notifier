@@ -106,7 +106,7 @@ def main():
     if new_arrivals:
         save_json(NEW_ARRIVALS_PATH, new_arrivals)
         notify_line(format_message("🔔 新着物件のお知らせ", new_arrivals))
-        ping_render()
+        # ping_render()  ← Render起動はもう不要！
         save_json(DATA_PATH, current)
     elif updates:
         save_json(UPDATES_PATH, updates)
