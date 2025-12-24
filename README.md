@@ -10,6 +10,10 @@ UR賃貸住宅の空き情報を定期的にチェックし、LINEに通知す�
 - 通知には LINE Messaging API を使用（アクセストークンとグループIDが必要）
 - 実行後、最新の物件情報を `previous.json` に保存して次回比較に備える
 
+💡 補足ポイント
+- 通知対象は「新規入居者募集」「抽選募集」「応募状況」「抽選結果」などのキーワードを含む物件タイトル
+- 通知はLINEグループ限定（LINE Notifyではなく、Messaging APIのPush）
+- LINE_CHANNEL_ACCESS_TOKEN と LINE_GROUP_ID は環境変数で設定
 
 ## 🚀 使い方
 
