@@ -37,7 +37,8 @@ def send_line_message(message):
         'Authorization': f'Bearer {CHANNEL_ACCESS_TOKEN}'
     }
     body = {
-        'to': USER_ID,
+        # 修正後（GROUP_IDに変更！）
+        'to': GROUP_ID,
         'messages': [{'type': 'text', 'text': message}]
     }
     response = requests.post(url, headers=headers, data=json.dumps(body))
@@ -113,3 +114,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
