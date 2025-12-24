@@ -21,14 +21,6 @@ jobs:
       - name: 📦 依存パッケージをインストール
         run: pip install -r requirements.txt
 
-      - name: 🔍 新着チェック＆Render起動（静的HTML解析）
-        env:
-          RENDER_WEBHOOK_URL: ${{ secrets.RENDER_WEBHOOK_URL }}
-          LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
-          LINE_USER_ID: ${{ secrets.LINE_USER_ID }}
-          LINE_GROUP_ID: ${{ secrets.LINE_GROUP_ID }}
-        run: python check_ur.py
-
       - name: 🔍 Seleniumで詳細チェック（動的ページ対応）
         env:
           LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
