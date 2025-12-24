@@ -1,5 +1,7 @@
 # URライン通知者
 
+![Check and Ping](https://github.com/boulderer2012/ur-line-notifier/actions/workflows/check-and-ping.yml/badge.svg)
+
 UR都市機構の新築賃貸住宅情報を定期的にチェックし、LINEグループに新着や更新情報を通知するツールです。  
 GitHub Actions を使って自動実行され、Renderなどの外部サービスと連携することも可能です。
 
