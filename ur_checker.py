@@ -26,8 +26,9 @@ def save_current(data):
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 # LINE設定（Renderでは環境変数で管理するのが安全！）
-CHANNEL_ACCESS_TOKEN = os.environ.get("CHANNEL_ACCESS_TOKEN")
-USER_ID = os.environ.get("USER_ID")
+# 修正後（グループ宛てに統一）
+CHANNEL_ACCESS_TOKEN = os.environ.get("LINE_CHANNEL_ACCESS_TOKEN")
+GROUP_ID = os.environ.get("LINE_GROUP_ID")
 
 def send_line_message(message):
     url = 'https://api.line.me/v2/bot/message/push'
@@ -112,6 +113,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
