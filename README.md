@@ -1,6 +1,6 @@
 # UR Line Notifier
 
-UR賃貸住宅の空き情報を定期的にチェックし、LINEに通知するツールです。
+URの新築物件ページを定期巡回し、新規募集や抽選情報の更新をLINEに通知します。
 
 ## 🔧 機能概要
 
@@ -10,22 +10,18 @@ UR賃貸住宅の空き情報を定期的にチェックし、LINEに通知す�
 - 通知には LINE Messaging API を使用（アクセストークンとグループIDが必要）
 - 実行後、最新の物件情報を `previous.json` に保存して次回比較に備える
 
-💡 補足ポイント
-- 通知対象は「新規入居者募集」「抽選募集」「応募状況」「抽選結果」などのキーワードを含む物件タイトル
-- 通知はLINEグループ限定（LINE Notifyではなく、Messaging APIのPush）
-- LINE_CHANNEL_ACCESS_TOKEN と LINE_GROUP_ID は環境変数で設定
-
 ## 🚀 使い方
 
-### 1. 必要な環境変数の設定
+### 1. 環境変数の設定
 
 以下の環境変数を設定してください：
 
-- `LINE_NOTIFY_TOKEN`：LINE Notifyのアクセストークン
+- `LINE_CHANNEL_ACCESS_TOKEN`：LINE Messaging APIのチャネルアクセストークン
+- `LINE_GROUP_ID`：通知を送るLINEグループのID
 
 ### 2. GitHub Actionsでの自動実行
 
-`.github/workflows/` 以下にあるワークフローが、定期的にスクリプトを実行します。
+`.github/workflows/` 以下にあるワークフローを使って、定期的にスクリプトを実行できます。
 
 ### 3. ローカルでの実行（任意）
 
