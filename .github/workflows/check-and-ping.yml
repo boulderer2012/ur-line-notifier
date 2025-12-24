@@ -29,3 +29,9 @@ jobs:
           LINE_USER_ID: ${{ secrets.LINE_USER_ID }}
           LINE_GROUP_ID: ${{ secrets.LINE_GROUP_ID }}
         run: python check_ur.py
+
+      - name: 🔍 Seleniumで詳細チェック
+        env:
+          CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
+          USER_ID: ${{ secrets.LINE_USER_ID }}
+        run: python ur_checker.py
