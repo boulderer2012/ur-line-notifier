@@ -13,7 +13,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from datetime import datetime
 
 # 永続ディスクのパス 
-DATA_PATH = "/data/previous.json"
+# 修正後（check_ur.py と同じ場所に保存）
+DATA_PATH = "previous.json"
 
 def load_previous(): 
     if os.path.exists(DATA_PATH):
