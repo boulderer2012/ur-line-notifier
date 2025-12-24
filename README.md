@@ -1,30 +1,45 @@
-# UR Line Notifier
+# UR LINE Notifier
 
-URの新築物件ページを定期巡回し、新規募集や抽選情報の更新をLINEに通知します。
+UR都市機構の新築賃貸住宅情報を定期的にチェックし、LINEグループに新着や更新情報を通知するツールです。  
+GitHub Actions を使って自動実行され、Renderなどの外部サービスと連携することも可能です。
 
-## 🔧 機能概要
+---
 
-- UR都市機構の「新築賃貸住宅」ページを定期的にチェック
-- 前回取得した物件情報（`previous.json`）と比較し、**新着物件**や**更新情報（抽選・応募状況など）**を検出
-- 新着があれば `new_arrivals.json` に保存し、LINEグループに通知
-- 通知には LINE Messaging API を使用（アクセストークンとグループIDが必要）
-- 実行後、最新の物件情報を `previous.json` に保存して次回比較に備える
+## 🧭 スクリプトの使い分け
 
-## 🚀 使い方
+このリポジトリには、UR都市機構の新築賃貸住宅情報をチェックする2つのスクリプトが含まれています。  
+それぞれの役割と特徴は以下の通りです：
 
-### 1. 環境変数の設定
+| スクリプト名 | 特徴 | 使用技術 | 実行環境 | 通知先 |
+|--------------|------|----------|----------|--------|
+| `check_ur.py` | 軽量・高速。静的HTMLから物件情報を取得 | requests + BeautifulSoup | GitHub Actionsで毎日実行 | LINEグループ |
+| `ur_checker.py` | 動的ページ対応。抽選・関東ボタンを自動クリックして情報取得 | Selenium + BeautifulSoup | GitHub Actionsで月1実行（または手動） | LINEグループ |
 
-以下の環境変数を設定してください：
+### 使い分けのイメージ
 
-- `LINE_CHANNEL_ACCESS_TOKEN`：LINE Messaging APIのチャネルアクセストークン
-- `LINE_GROUP_ID`：通知を送るLINEグループのID
+- **毎日の新着チェック → `check_ur.py`**
+- **抽選物件や詳細情報の深掘り → `ur_checker.py`**
 
-### 2. GitHub Actionsでの自動実行
+どちらも `previous.json` を使って前回との差分を検出し、LINEグループに通知します。
 
-`.github/workflows/` 以下にあるワークフローを使って、定期的にスクリプトを実行できます。
+---
 
-### 3. ローカルでの実行（任意）
+## 📄 ur_checker.py について
+
+`ur_checker.py` は、Selenium を使って UR都市機構の新築賃貸住宅ページをブラウザ操作し、  
+「抽選」や「関東」などのフィルターを自動でクリックして、より詳細な物件情報を取得・通知するスクリプトです。
+
+### 特徴
+
+- JavaScriptで動的に生成される情報にも対応（Selenium使用）
+- 「＃抽選」「＃関東」ボタンを自動クリックして対象物件を抽出
+- `check_ur.py` と同様に、前回との差分を検出してLINEグループに通知
+- 通知先やトークンは環境変数で管理（`LINE_CHANNEL_ACCESS_TOKEN`, `LINE_GROUP_ID`）
+
+### 実行方法
+
+GitHub Actions で `check_ur.py` と一緒に定期実行されるよう設定されています。  
+手動で実行する場合は、以下のように実行できます：
 
 ```bash
-pip install -r requirements.txt
-python check_ur.py
+python ur_checker.py
