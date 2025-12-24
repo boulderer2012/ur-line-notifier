@@ -3,10 +3,11 @@ import json
 import requests
 from bs4 import BeautifulSoup
 
+# データ保存用のファイルパス
 DATA_PATH = "previous.json"
 NEW_ARRIVALS_PATH = "new_arrivals.json"
-UPDATES_PATH = "updates.json"
 
+# URの新築賃貸住宅一覧を取得する関数
 def fetch_ur_listings():
     url = "https://www.ur-net.go.jp/chintai/information/"
     headers = {"User-Agent": "Mozilla/5.0"}
@@ -19,20 +20,24 @@ def fetch_ur_listings():
     for link in links:
         text = link.get_text(strip=True)
         href = link.get("href")
+        # 「新築賃貸住宅」の文字列を含むリンクだけを抽出
         if "新築賃貸住宅" in text:
             listings.append({"title": text, "url": base_url + href})
     return listings
 
+# 前回保存したデータを読み込む関数
 def load_previous():
     if os.path.exists(DATA_PATH):
         with open(DATA_PATH, "r", encoding="utf-8") as f:
             return json.load(f)
     return []
 
+# JSONデータを指定ファイルに保存する関数
 def save_json(path, data):
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
+# 新着や更新情報を検出する関数
 def detect_new_listings(current, previous):
     previous_titles = {item["title"] for item in previous}
     new_items = [item for item in current if item["title"] not in previous_titles]
@@ -49,17 +54,7 @@ def detect_new_listings(current, previous):
 
     return new_arrivals, updates
 
-def ping_render():
-    render_url = os.environ.get("RENDER_WEBHOOK_URL")
-    if not render_url:
-        print("❌ RENDER_WEBHOOK_URL が設定されていません")
-        return
-    try:
-        res = requests.get(render_url)
-        print(f"🚀 Render起動リクエスト送信！ステータス: {res.status_code}")
-    except Exception as e:
-        print(f"⚠️ Render起動に失敗: {e}")
-
+# LINEグループに通知を送る関数
 def notify_line(message):
     token = os.environ.get("LINE_CHANNEL_ACCESS_TOKEN")
     group_id = os.environ.get("LINE_GROUP_ID")
@@ -89,31 +84,32 @@ def notify_line(message):
     except Exception as e:
         print(f"⚠️ LINEグループ通知に失敗: {e}")
 
+# 通知メッセージを整形する関数
 def format_message(header, items):
     lines = [header]
     for item in items:
         lines.append(f"・{item['title']}\n{item['url']}")
     return "\n".join(lines)
 
+# メイン処理
 def main():
-    current = fetch_ur_listings()
-    previous = load_previous()
-    new_arrivals, updates = detect_new_listings(current, previous)
+    current = fetch_ur_listings()           # 現在の物件一覧を取得
+    previous = load_previous()              # 前回のデータを読み込み
+    new_arrivals, updates = detect_new_listings(current, previous)  # 差分を検出
 
     print(f"🌿 new_arrivals: {len(new_arrivals)} 件")
     print(f"🌿 updates: {len(updates)} 件")
 
     if new_arrivals:
-        save_json(NEW_ARRIVALS_PATH, new_arrivals)
-        notify_line(format_message("🔔 新着物件のお知らせ", new_arrivals))
-        # ping_render()  ← Render起動はもう不要！
-        save_json(DATA_PATH, current)
+        save_json(NEW_ARRIVALS_PATH, new_arrivals)  # 新着を保存
+        notify_line(format_message("🔔 新着物件のお知らせ", new_arrivals))  # LINE通知
+        save_json(DATA_PATH, current)  # 最新データを保存
     elif updates:
-        save_json(UPDATES_PATH, updates)
-        notify_line(format_message("📄 更新情報のお知らせ", updates))
-        save_json(DATA_PATH, current)
+        notify_line(format_message("📄 更新情報のお知らせ", updates))  # LINE通知
+        save_json(DATA_PATH, current)  # 最新データを保存
     else:
         print("📭 新着も更新もなし。また明日チェックするね！")
 
+# スクリプトが直接実行されたときだけmain()を呼ぶ
 if __name__ == "__main__":
     main()
