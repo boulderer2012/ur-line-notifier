@@ -88,8 +88,8 @@ def fetch_ur_listings():
     return listings
 
 def detect_new_listings(current, previous):
-    previous_titles = {item["title"] for item in previous}
-    return [item for item in current if item["title"] not in previous_titles]
+    previous_set = {(item["title"], item["url"]) for item in previous}
+    return [item for item in current if (item["title"], item["url"]) not in previous_set]
 
 def main():
     # JSTの現在時刻を取得
@@ -115,3 +115,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
