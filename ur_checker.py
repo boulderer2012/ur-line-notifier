@@ -111,9 +111,11 @@ def main():
         for item in new_list[:MAX_ITEMS]:
             message += f"{item['title']}\n{item['url']}\n\n"
         send_line_message(message.strip())
-        save_current(current)
     else:
         print("📭 新着なし〜")
+
+    # 🔄 差分の有無にかかわらず、最新データを保存
+    save_current(current)
 
 if __name__ == "__main__":
     main()
