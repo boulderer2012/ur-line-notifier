@@ -5,7 +5,6 @@ import requests
 import pytz
 from bs4 import BeautifulSoup
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -13,21 +12,19 @@ from selenium.webdriver.support import expected_conditions as EC
 from datetime import datetime
 
 # 永続ディスクのパス 
-# 修正後（check_ur.py と同じ場所に保存）
 DATA_PATH = "previous.json"
 
 def load_previous(): 
     if os.path.exists(DATA_PATH):
         with open(DATA_PATH, "r", encoding="utf-8") as f:
             return json.load(f)
-    return []  # ← インデント修正！
+    return []
 
 def save_current(data):
     with open(DATA_PATH, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 # LINE設定（Renderでは環境変数で管理するのが安全！）
-# 修正後（グループ宛てに統一）
 CHANNEL_ACCESS_TOKEN = os.environ.get("LINE_CHANNEL_ACCESS_TOKEN")
 GROUP_ID = os.environ.get("LINE_GROUP_ID")
 
@@ -38,7 +35,6 @@ def send_line_message(message):
         'Authorization': f'Bearer {CHANNEL_ACCESS_TOKEN}'
     }
     body = {
-        # 修正後（GROUP_IDに変更！）
         'to': GROUP_ID,
         'messages': [{'type': 'text', 'text': message}]
     }
@@ -99,8 +95,14 @@ def main():
 
     current = fetch_ur_listings()
     previous = load_previous()
-    new_list = detect_new_listings(current, previous)
 
+    # 🔒 初回実行や previous.json が空のときは通知せず保存だけ
+    if not previous:
+        print("📂 初回実行または previous.json が空のため、通知せず保存のみ行います。")
+        save_current(current)
+        return
+
+    new_list = detect_new_listings(current, previous)
     MAX_ITEMS = 5  # 通知する最大件数
 
     if new_list:
@@ -115,4 +117,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
