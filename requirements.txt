@@ -2,3 +2,7 @@ requests
 beautifulsoup4
 selenium
 pytz
+flask
+line-bot-sdk
+openai
+python-dotenv
