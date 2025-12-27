@@ -1,5 +1,5 @@
 import os
-import openai
+from openai import OpenAI
 from flask import Flask, request, abort
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
@@ -12,10 +12,11 @@ load_dotenv()
 # LINEとOpenAIの設定
 LINE_CHANNEL_ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
 LINE_CHANNEL_SECRET = os.getenv("LINE_CHANNEL_SECRET")
-openai.api_key = os.getenv("OPENAI_API_KEY")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 line_bot_api = LineBotApi(LINE_CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(LINE_CHANNEL_SECRET)
+client = OpenAI(api_key=OPENAI_API_KEY)
 
 app = Flask(__name__)
 
@@ -35,12 +36,12 @@ def webhook():
 def handle_message(event):
     user_message = event.message.text
 
-    # OpenAIに問い合わせ
+    # OpenAIに問い合わせ（v1.0.0以降の書き方）
     try:
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",  # または gpt-4
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "あなたは親しみやすく丁寧なアシスタントです。"},
+                {"role": "system", "content": "あなたはUR賃貸住宅に詳しい不動産アドバイザーです。特に関東エリア（東京・埼玉・千葉・神奈川）の物件に詳しく、礼金・仲介手数料・更新料が不要なUR賃貸の特徴や、地域ごとのおすすめポイント、申し込み方法などをわかりやすく丁寧に説明してください。"},
                 {"role": "user", "content": user_message}
             ]
         )
