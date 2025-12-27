@@ -2,7 +2,7 @@ name: Check UR Listings and Ping Render
 
 on:
   schedule:
-    - cron: '57 1 * * *'  # JSTで10:57（UTCで1:57）に毎日実行
+    - cron: '12 1 * * *' # JSTで10:12に毎日実行
 
   workflow_dispatch:       # 手動実行も可能
 
