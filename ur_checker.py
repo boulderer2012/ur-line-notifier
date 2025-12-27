@@ -118,8 +118,8 @@ def fetch_renovated_higashi_asaka():
             continue
         if not is_size_ok(size_text):
             continue
-        if not is_floor_ok(floor_text):
-            continue
+        # if not is_floor_ok(floor_text):
+        #    continue
         # 🔍 リノベーションのキーワードを複数チェック
         RENOVATION_KEYWORDS = ["リノベーション", "リノベ", "リノベーションしたお部屋"]
         if not any(keyword in remarks_text for keyword in RENOVATION_KEYWORDS):
@@ -211,4 +211,5 @@ def main():
 # 🔹 スクリプトのエントリーポイント
 if __name__ == "__main__":
     main()
+
 
