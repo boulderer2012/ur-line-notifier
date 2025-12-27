@@ -1,0 +1,9 @@
+# 環境変数ファイル
+.env
+
+# Pythonキャッシュ
+__pycache__/
+*.pyc
+
+# ログや一時ファイル
+debug_result.html
