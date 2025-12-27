@@ -11,6 +11,10 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from datetime import datetime
+from dotenv import load_dotenv
+
+# 🔸 環境変数の読み込み
+load_dotenv()
 
 # 🔸 差分保存用のファイルパス
 DATA_PATH = "previous.json"
@@ -49,7 +53,7 @@ def send_line_message(message):
 # 🔹 Selenium用のChromeドライバを作成
 def create_driver():
     options = Options()
-    options.add_argument("--headless")  # 画面を表示しない
+    options.add_argument("--headless")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     driver = webdriver.Chrome(options=options)
@@ -76,24 +80,24 @@ def is_floor_ok(floor_str):
         return int(match.group(1)) >= 3
     return False
 
-# 🔹 コンフォール東朝霞のリノベ済み物件を抽出
+# 🔹 コンフォール東朝霞のリノベ済み物件を抽出（本番用）
 def fetch_renovated_higashi_asaka():
     url = "https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_1488&todofuken=saitama"
     driver = create_driver()
     driver.get(url)
-    time.sleep(5)  # JavaScriptでの読み込み待ち
+    time.sleep(5)
 
     soup = BeautifulSoup(driver.page_source, "html.parser")
     driver.quit()
 
     listings = []
     base_url = "https://www.ur-net.go.jp"
-    cards = soup.select("div.section_inner > ul > li")  # 物件カード一覧
+    cards = soup.select("div.section_inner > ul > li")
 
     for card in cards:
         name_tag = card.select_one("p.property_name")
         if not name_tag or "コンフォール東朝霞" not in name_tag.text:
-            continue  # 他の物件はスキップ
+            continue
 
         detail_link = card.select_one("a")
         if not detail_link:
@@ -102,7 +106,6 @@ def fetch_renovated_higashi_asaka():
         url = base_url + detail_link.get("href")
         title = name_tag.text.strip()
 
-        # 各情報を抽出
         layout = card.select_one("p.layout")
         size = card.select_one("p.size")
         floor = card.select_one("p.floor")
@@ -111,21 +114,11 @@ def fetch_renovated_higashi_asaka():
         layout_text = layout.text.strip() if layout else ""
         size_text = size.text.strip() if size else ""
         floor_text = floor.text.strip() if floor else ""
-        remarks_text = remarks.text.strip() if remarks else ""
 
-        # 条件に合致するかチェック
-        if not is_layout_ok(layout_text):
-            continue
-        if not is_size_ok(size_text):
-            continue
-        # if not is_floor_ok(floor_text):
-        #    continue
-        # 🔍 リノベーションのキーワードを複数チェック
-        RENOVATION_KEYWORDS = ["リノベーション", "リノベ", "リノベーションしたお部屋"]
-        if not any(keyword in remarks_text for keyword in RENOVATION_KEYWORDS):
+        # 条件を満たす物件のみ通知対象に
+        if not (is_layout_ok(layout_text) and is_size_ok(size_text) and is_floor_ok(floor_text)):
             continue
 
-        # 条件を満たす物件を追加
         listings.append({
             "title": f"{title} {layout_text} {size_text} {floor_text}",
             "url": url
@@ -166,19 +159,18 @@ def fetch_ur_listings():
         if "新築賃貸住宅" in text:
             listings.append({"title": text, "url": base_url + href})
 
-    # 🔍 東朝霞リノベ物件も追加でチェック！
+    # 東朝霞リノベ物件も追加
     listings += fetch_renovated_higashi_asaka()
 
     return listings
 
-# 🔹 前回との差分を検出（title + url のペアで比較）
+# 🔹 前回との差分を検出
 def detect_new_listings(current, previous):
     previous_set = {(item["title"], item["url"]) for item in previous}
     return [item for item in current if (item["title"], item["url"]) not in previous_set]
 
 # 🔹 メイン処理
 def main():
-    # 現在時刻（JST）を取得
     jst = pytz.timezone('Asia/Tokyo')
     now = datetime.now(jst)
     print(f"🕒 チェック実行時刻（JST）: {now.strftime('%Y-%m-%d %H:%M:%S')}")
@@ -186,15 +178,13 @@ def main():
     current = fetch_ur_listings()
     previous = load_previous()
 
-    # 初回実行や previous.json が空のときは通知せず保存だけ
     if not previous:
         print("📂 初回実行または previous.json が空のため、通知せず保存のみ行います。")
         save_current(current)
         return
 
-    # 差分を検出
     new_list = detect_new_listings(current, previous)
-    MAX_ITEMS = 5  # 通知する最大件数
+    MAX_ITEMS = 5
 
     if new_list:
         print(f"🔔 {len(new_list)} 件の新着物件を検出！")
@@ -205,11 +195,8 @@ def main():
     else:
         print("📭 新着なし〜")
 
-    # 最新の物件リストを保存
     save_current(current)
 
-# 🔹 スクリプトのエントリーポイント
+# 🔹 エントリーポイント
 if __name__ == "__main__":
     main()
-
-
