@@ -1,4 +1,4 @@
-# URライン通知者
+# URライン通知
 
 ![Check and Ping](https://github.com/boulderer2012/ur-line-notifier/actions/workflows/check-and-ping.yml/badge.svg)
 
