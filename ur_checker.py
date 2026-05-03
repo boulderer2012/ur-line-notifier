@@ -66,15 +66,6 @@ def extract_nearest_station(access_text):
         return match.group(1) + "駅"
     return None
 
-def is_size_ok(size_str):
-    try:
-        size = re.search(r"[\d.]+", size_str)
-        if size:
-            return float(size.group()) >= 60.0
-    except:
-        pass
-    return False
-
 def fetch_listings_from_url(search_url, label=""):
     driver = create_driver()
     try:
@@ -99,11 +90,6 @@ def fetch_listings_from_url(search_url, label=""):
     cards = soup.select("div.module_cassettes_property")
     print(f"🔍 [{label}] 取得した物件数: {len(cards)}")
 
-    # デバッグ：最初の1件の全HTMLを出力
-    if cards:
-        print(f"=== カードHTML ===")
-        print(cards[0].prettify()[:3000])
-
     listings = []
     base_url = "https://www.ur-net.go.jp"
 
@@ -124,6 +110,7 @@ def fetch_listings_from_url(search_url, label=""):
         access_tags = card.select("div.cassettes_property_information li")
         access_text = access_tags[0].get_text(strip=True) if access_tags else ""
 
+        # 面積チェック
         info_tag = card.select_one("div.cassettes_property_infolistwrapper")
         info_text = info_tag.get_text(strip=True) if info_tag else ""
         size_match = re.search(r"([\d.]+)\s*㎡", info_text)
@@ -144,9 +131,19 @@ def fetch_listings_from_url(search_url, label=""):
     return listings
 
 def fetch_all_listings():
-    # デバッグ用に1駅だけ
     targets = [
-    ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_2225&todofuken=saitama", "志木駅"),
+        ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_3294&todofuken=saitama", "和光市駅"),
+        ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_1488&todofuken=saitama", "朝霞駅"),
+        ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_1489&todofuken=saitama", "朝霞台駅"),
+        ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=3800_1940&todofuken=saitama", "北朝霞駅"),
+        ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_2225&todofuken=saitama", "志木駅"),
+        ("https://www.ur-net.go.jp/chintai/kanto/tokyo/result/?line_station=3600_1062&todofuken=tokyo", "大井町駅"),
+        ("https://www.ur-net.go.jp/chintai/kanto/tokyo/result/?line_station=3600_1052&todofuken=tokyo", "東十条駅"),
+        ("https://www.ur-net.go.jp/chintai/kanto/tokyo/result/?line_station=3600_1051&todofuken=tokyo", "王子駅"),
+        ("https://www.ur-net.go.jp/chintai/kanto/tokyo/result/?line_station=3600_1048&todofuken=tokyo", "赤羽駅"),
+        ("https://www.ur-net.go.jp/chintai/kanto/tokyo/result/?line_station=3600_1049&todofuken=tokyo", "十条駅"),
+        ("https://www.ur-net.go.jp/chintai/kanto/tokyo/result/?line_station=5300_1109&todofuken=tokyo", "池袋駅"),
+        ("https://www.ur-net.go.jp/chintai/kanto/tokyo/result/?line_station=5300_1110&todofuken=tokyo", "板橋駅"),
     ]
 
     all_listings = []
