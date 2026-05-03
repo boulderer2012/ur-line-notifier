@@ -76,7 +76,6 @@ def fetch_listings_from_url(search_url, label=""):
                 EC.presence_of_element_located((By.CLASS_NAME, "module_cassettes_property"))
             )
         except:
-            # タイムアウト＝空き物件なし、正常終了
             print(f"📭 [{label}] 空き物件なし")
             return []
 
@@ -125,7 +124,6 @@ def fetch_all_listings():
         # 埼玉側（東武東上線）
         ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_1487&todofuken=saitama", "和光市駅"),
         ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_1489&todofuken=saitama", "朝霞駅"),
-        ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_1488&todofuken=saitama", "東朝霞駅"),
         ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_1490&todofuken=saitama", "北朝霞駅・朝霞台駅"),
         ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_1491&todofuken=saitama", "志木駅"),
         # 東京側
