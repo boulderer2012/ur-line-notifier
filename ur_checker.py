@@ -120,12 +120,12 @@ def fetch_listings_from_url(search_url, label=""):
         access_text = access_tags[0].get_text(strip=True) if access_tags else ""
 
         # 面積チェック
-        info_tag = card.select_one("div.cassettes_property_infolistwrapper")
-        info_text = info_tag.get_text(strip=True) if info_tag else ""
-        size_match = re.search(r"([\d.]+)\s*㎡", info_text)
-        if size_match:
-            if float(size_match.group(1)) < 60.0:
-                continue
+        # info_tag = card.select_one("div.cassettes_property_infolistwrapper")
+        # info_text = info_tag.get_text(strip=True) if info_tag else ""
+        # size_match = re.search(r"([\d.]+)\s*㎡", info_text)
+        # if size_match:
+            # if float(size_match.group(1)) < 60.0:
+                # continue
 
         nearest = extract_nearest_station(access_text)
         station_label = nearest if nearest else label
@@ -141,18 +141,7 @@ def fetch_listings_from_url(search_url, label=""):
 
 def fetch_all_listings():
     targets = [
-        ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_3294&todofuken=saitama", "和光市駅"),
-        ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_1488&todofuken=saitama", "朝霞駅"),
-        ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_1489&todofuken=saitama", "朝霞台駅"),
-        ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=3800_1940&todofuken=saitama", "北朝霞駅"),
-        ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_2225&todofuken=saitama", "志木駅"),
-        ("https://www.ur-net.go.jp/chintai/kanto/tokyo/result/?line_station=3600_1062&todofuken=tokyo", "大井町駅"),
-        ("https://www.ur-net.go.jp/chintai/kanto/tokyo/result/?line_station=3600_1052&todofuken=tokyo", "東十条駅"),
-        ("https://www.ur-net.go.jp/chintai/kanto/tokyo/result/?line_station=3600_1051&todofuken=tokyo", "王子駅"),
-        ("https://www.ur-net.go.jp/chintai/kanto/tokyo/result/?line_station=3600_1048&todofuken=tokyo", "赤羽駅"),
-        ("https://www.ur-net.go.jp/chintai/kanto/tokyo/result/?line_station=3600_1049&todofuken=tokyo", "十条駅"),
-        ("https://www.ur-net.go.jp/chintai/kanto/tokyo/result/?line_station=5300_1109&todofuken=tokyo", "池袋駅"),
-        ("https://www.ur-net.go.jp/chintai/kanto/tokyo/result/?line_station=5300_1110&todofuken=tokyo", "板橋駅"),
+    ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_2225&todofuken=saitama", "志木駅"),
     ]
 
     all_listings = []
