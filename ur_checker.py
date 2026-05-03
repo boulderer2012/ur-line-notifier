@@ -13,29 +13,23 @@ from selenium.webdriver.support import expected_conditions as EC
 from datetime import datetime
 from dotenv import load_dotenv
 
-# 🔸 環境変数の読み込み
 load_dotenv()
 
-# 🔸 差分保存用のファイルパス
 DATA_PATH = "previous.json"
 
-# 🔹 前回の物件リストを読み込む
-def load_previous(): 
+def load_previous():
     if os.path.exists(DATA_PATH):
         with open(DATA_PATH, "r", encoding="utf-8") as f:
             return json.load(f)
     return []
 
-# 🔹 今回取得した物件リストを保存
 def save_current(data):
     with open(DATA_PATH, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
-# 🔸 LINE通知設定（環境変数から取得）
 CHANNEL_ACCESS_TOKEN = os.environ.get("LINE_CHANNEL_ACCESS_TOKEN")
 GROUP_ID = os.environ.get("LINE_GROUP_ID")
 
-# 🔹 LINEグループにメッセージを送信
 def send_line_message(message):
     url = 'https://api.line.me/v2/bot/message/push'
     headers = {
@@ -50,7 +44,6 @@ def send_line_message(message):
     print(f'📤 ステータスコード: {response.status_code}')
     print(f'📨 レスポンス: {response.text}')
 
-# 🔹 Selenium用のChromeドライバを作成
 def create_driver():
     options = Options()
     options.add_argument("--headless")
@@ -59,88 +52,82 @@ def create_driver():
     driver = webdriver.Chrome(options=options)
     return driver
 
-# 🔹 間取りが2DK以上かを判定
-def is_layout_ok(layout):
-    match = re.match(r"(\d+)[DLK]+", layout)
-    if match:
-        return int(match.group(1)) >= 2
-    return False
-
-# 🔹 面積が60㎡以上かを判定
 def is_size_ok(size_str):
     try:
         return float(size_str.replace("㎡", "").strip()) >= 60.0
     except:
         return False
 
-# 🔹 階数が3階以上かを判定
-def is_floor_ok(floor_str):
-    match = re.search(r"(\d+)階", floor_str)
-    if match:
-        return int(match.group(1)) >= 3
-    return False
-
-# 🔹 コンフォール東朝霞のリノベ済み物件を抽出（本番用）
-def fetch_renovated_higashi_asaka():
-    url = "https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_1488&todofuken=saitama"
+# 🔹 路線・駅URLから物件を取得する汎用関数
+def fetch_listings_from_url(search_url, label=""):
     driver = create_driver()
-    driver.get(url)
-    
-    # 物件カードが読み込まれるまで待機
-    wait = WebDriverWait(driver, 20)
-    try:
-        wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.section_inner ul li")))
-    except:
-        print("⚠️ 物件カードの読み込みタイムアウト")
-        driver.quit()
-        return []
-
-    time.sleep(3)  # 念のため追加待機
+    driver.get(search_url)
+    time.sleep(10)
 
     soup = BeautifulSoup(driver.page_source, "html.parser")
     driver.quit()
 
     listings = []
     base_url = "https://www.ur-net.go.jp"
-    cards = soup.select("div.section_inner > ul > li")
-    
-    print(f"🔍 取得したカード数: {len(cards)}")  # デバッグ用
+    cards = soup.select("li")
+
+    print(f"🔍 [{label}] 取得したliタグ数: {len(cards)}")
 
     for card in cards:
         name_tag = card.select_one("p.property_name")
-        if not name_tag or "コンフォール東朝霞" not in name_tag.text:
+        if not name_tag:
             continue
 
         detail_link = card.select_one("a")
         if not detail_link:
             continue
 
-        href = detail_link.get("href")
-        full_url = base_url + href
+        href = detail_link.get("href", "")
+        full_url = base_url + href if href.startswith("/") else href
         title = name_tag.text.strip()
 
-        layout = card.select_one("p.layout")
         size = card.select_one("p.size")
-        floor = card.select_one("p.floor")
-
-        layout_text = layout.text.strip() if layout else ""
         size_text = size.text.strip() if size else ""
-        floor_text = floor.text.strip() if floor else ""
 
-        print(f"🏠 発見: {title} {layout_text} {size_text} {floor_text}")  # デバッグ用
-
-        if not (is_layout_ok(layout_text) and is_size_ok(size_text) and is_floor_ok(floor_text)):
+        if not is_size_ok(size_text):
             continue
 
+        layout = card.select_one("p.layout")
+        floor = card.select_one("p.floor")
+        layout_text = layout.text.strip() if layout else ""
+        floor_text = floor.text.strip() if floor else ""
+
         listings.append({
-            "title": f"{title} {layout_text} {size_text} {floor_text}",
+            "title": f"[{label}] {title} {layout_text} {size_text} {floor_text}",
             "url": full_url
         })
 
+    print(f"✅ [{label}] 条件一致: {len(listings)}件")
     return listings
-    
-# 🔹 UR公式お知らせページから新築物件を取得＋東朝霞リノベ物件も追加
-def fetch_ur_listings():
+
+# 🔹 全対象エリアから物件を取得
+def fetch_all_listings():
+    targets = [
+        # 東京路線（沿線URL）
+        ("https://www.ur-net.go.jp/chintai/kanto/tokyo/result/?line=3600&todofuken=tokyo", "JR京浜東北線"),
+        ("https://www.ur-net.go.jp/chintai/kanto/tokyo/result/?line=5300&todofuken=tokyo", "JR山手線"),
+        ("https://www.ur-net.go.jp/chintai/kanto/tokyo/result/?line=56800&todofuken=tokyo", "東京メトロ副都心線"),
+        # 埼玉側駅（駅単位URL）
+        ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_1487&todofuken=saitama", "和光市駅"),
+        ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_1489&todofuken=saitama", "朝霞駅"),
+        ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_1488&todofuken=saitama", "東朝霞駅"),
+        ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_1490&todofuken=saitama", "北朝霞駅"),
+    ]
+
+    all_listings = []
+    for url, label in targets:
+        listings = fetch_listings_from_url(url, label)
+        all_listings += listings
+
+    return all_listings
+
+# 🔹 UR公式お知らせページから新築物件を取得
+def fetch_ur_news_listings():
     url = "https://www.ur-net.go.jp/chintai/information/"
     driver = create_driver()
     driver.get(url)
@@ -170,29 +157,24 @@ def fetch_ur_listings():
         text = link.get_text(strip=True)
         href = link.get("href")
         if "新築賃貸住宅" in text:
-            listings.append({"title": text, "url": base_url + href})
-
-    # 東朝霞リノベ物件も追加
-    listings += fetch_renovated_higashi_asaka()
+            listings.append({"title": f"[新築] {text}", "url": base_url + href})
 
     return listings
 
-# 🔹 前回との差分を検出
 def detect_new_listings(current, previous):
     previous_set = {(item["title"], item["url"]) for item in previous}
     return [item for item in current if (item["title"], item["url"]) not in previous_set]
 
-# 🔹 メイン処理
 def main():
     jst = pytz.timezone('Asia/Tokyo')
     now = datetime.now(jst)
     print(f"🕒 チェック実行時刻（JST）: {now.strftime('%Y-%m-%d %H:%M:%S')}")
 
-    current = fetch_ur_listings()
+    current = fetch_ur_news_listings() + fetch_all_listings()
     previous = load_previous()
 
     if not previous:
-        print("📂 初回実行または previous.json が空のため、通知せず保存のみ行います。")
+        print("📂 初回実行のため、通知せず保存のみ行います。")
         save_current(current)
         return
 
@@ -201,7 +183,7 @@ def main():
 
     if new_list:
         print(f"🔔 {len(new_list)} 件の新着物件を検出！")
-        message = f"🏠 新着物件一覧（{now.strftime('%Y/%m/%d %H:%M')} 時点）\n\n"
+        message = f"🏠 新着物件（{now.strftime('%Y/%m/%d %H:%M')} 時点）\n\n"
         for item in new_list[:MAX_ITEMS]:
             message += f"{item['title']}\n{item['url']}\n\n"
         send_line_message(message.strip())
@@ -210,6 +192,5 @@ def main():
 
     save_current(current)
 
-# 🔹 エントリーポイント
 if __name__ == "__main__":
     main()
