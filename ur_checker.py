@@ -54,15 +54,6 @@ def create_driver():
     driver = webdriver.Chrome(options=options)
     return driver
 
-def is_size_ok(size_str):
-    try:
-        size = re.search(r"[\d.]+", size_str)
-        if size:
-            return float(size.group()) >= 60.0
-    except:
-        pass
-    return False
-
 def fetch_listings_from_url(search_url, label=""):
     driver = create_driver()
     try:
@@ -107,20 +98,10 @@ def fetch_listings_from_url(search_url, label=""):
         access_tags = card.select("div.cassettes_property_information li")
         access_text = access_tags[0].get_text(strip=True) if access_tags else ""
 
-        info_tag = card.select_one("div.cassettes_property_infolistwrapper")
-        info_text = info_tag.get_text(strip=True) if info_tag else ""
-
-        size_match = re.search(r"([\d.]+)\s*㎡", info_text)
-        if size_match:
-            if float(size_match.group(1)) < 60.0:
-                continue
-        size_str = f"{size_match.group(1)}㎡" if size_match else ""
-
         listings.append({
             "title": f"[{label}] {title}",
             "url": full_url,
-            "access": access_text,
-            "size": size_str
+            "access": access_text
         })
 
     print(f"✅ [{label}] 条件一致: {len(listings)}件")
@@ -143,7 +124,7 @@ def fetch_all_listings():
     ]
 
     all_listings = []
-    seen_urls = set()  # URL重複除去用
+    seen_urls = set()
 
     for url, label in targets:
         listings = fetch_listings_from_url(url, label)
@@ -187,8 +168,7 @@ def fetch_ur_news_listings():
             listings.append({
                 "title": f"[新築] {text}",
                 "url": base_url + href,
-                "access": "",
-                "size": ""
+                "access": ""
             })
 
     return listings
@@ -220,8 +200,6 @@ def main():
             message += f"{item['title']}\n"
             if item.get('access'):
                 message += f"🚃 {item['access']}\n"
-            if item.get('size'):
-                message += f"📐 {item['size']}\n"
             message += f"{item['url']}\n\n"
         send_line_message(message.strip())
     else:
