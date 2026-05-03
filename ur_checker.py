@@ -71,22 +71,59 @@ def fetch_listings_from_url(search_url, label=""):
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(5)
 
-        # Seleniumで直接物件要素を取得
-        elements = driver.find_elements(By.XPATH, "//*[contains(@class,'cassette')]")
-        print(f"🔍 [{label}] Selenium直接取得の要素数: {len(elements)}")
+        # 物件カードが出るまで待機
+        try:
+            WebDriverWait(driver, 15).until(
+                EC.presence_of_element_located((By.CLASS_NAME, "module_cassettes_property"))
+            )
+        except:
+            print(f"⚠️ [{label}] 物件カード待機タイムアウト（空き物件なしの可能性）")
 
-        # 要素のクラス名を確認
-        class_names = set()
-        for el in elements[:20]:
-            cls = el.get_attribute("class")
-            if cls:
-                class_names.add(cls)
-        print(f"  クラス名一覧: {class_names}")
-
+        html = driver.page_source
     finally:
         driver.quit()
 
-    return []
+    soup = BeautifulSoup(html, "html.parser")
+    cards = soup.select("div.module_cassettes_property")
+    print(f"🔍 [{label}] 取得した物件数: {len(cards)}")
+
+    if cards:
+        print(f"  先頭カードのテキスト: {cards[0].get_text(strip=True)[:150]}")
+
+    listings = []
+    base_url = "https://www.ur-net.go.jp"
+
+    for card in cards:
+        # 物件名
+        name_tag = card.select_one("div.cassettes_property_information p, h2, h3")
+        if not name_tag:
+            continue
+        title = name_tag.get_text(strip=True)
+        if not title or len(title) < 2:
+            continue
+
+        # リンク
+        detail_link = card.select_one("a")
+        if not detail_link:
+            continue
+        href = detail_link.get("href", "")
+        full_url = base_url + href if href.startswith("/") else href
+
+        # 面積
+        size_tag = card.select_one("div.cassettes_property_infolistwrapper")
+        size_text = size_tag.get_text(strip=True) if size_tag else ""
+        size_match = re.search(r"([\d.]+)\s*㎡", size_text)
+        if size_match:
+            if float(size_match.group(1)) < 60.0:
+                continue
+
+        listings.append({
+            "title": f"[{label}] {title}",
+            "url": full_url
+        })
+
+    print(f"✅ [{label}] 条件一致: {len(listings)}件")
+    return listings
 
 def fetch_all_listings():
     targets = [
