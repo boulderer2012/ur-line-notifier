@@ -91,6 +91,7 @@ def fetch_listings_from_url(search_url, label=""):
     base_url = "https://www.ur-net.go.jp"
 
     for card in cards:
+        # 物件名
         name_tag = card.select_one("div.cassettes_property_information p, h2, h3")
         if not name_tag:
             continue
@@ -98,22 +99,37 @@ def fetch_listings_from_url(search_url, label=""):
         if not title or len(title) < 2:
             continue
 
+        # リンク
         detail_link = card.select_one("a")
         if not detail_link:
             continue
         href = detail_link.get("href", "")
         full_url = base_url + href if href.startswith("/") else href
 
-        size_tag = card.select_one("div.cassettes_property_infolistwrapper")
-        size_text = size_tag.get_text(strip=True) if size_tag else ""
-        size_match = re.search(r"([\d.]+)\s*㎡", size_text)
+        # アクセス情報（路線・徒歩分数）
+        access_tags = card.select("div.cassettes_property_information li")
+        access_text = ""
+        if access_tags:
+            access_text = access_tags[0].get_text(strip=True)
+
+        # 面積・間取り情報
+        info_tag = card.select_one("div.cassettes_property_infolistwrapper")
+        info_text = info_tag.get_text(strip=True) if info_tag else ""
+
+        # 面積チェック
+        size_match = re.search(r"([\d.]+)\s*㎡", info_text)
         if size_match:
             if float(size_match.group(1)) < 60.0:
                 continue
 
+        # 面積を抽出
+        size_str = f"{size_match.group(1)}㎡" if size_match else ""
+
         listings.append({
             "title": f"[{label}] {title}",
-            "url": full_url
+            "url": full_url,
+            "access": access_text,
+            "size": size_str
         })
 
     print(f"✅ [{label}] 条件一致: {len(listings)}件")
@@ -174,7 +190,12 @@ def fetch_ur_news_listings():
         text = link.get_text(strip=True)
         href = link.get("href")
         if "新築賃貸住宅" in text:
-            listings.append({"title": f"[新築] {text}", "url": base_url + href})
+            listings.append({
+                "title": f"[新築] {text}",
+                "url": base_url + href,
+                "access": "",
+                "size": ""
+            })
 
     return listings
 
@@ -202,7 +223,12 @@ def main():
         print(f"🔔 {len(new_list)} 件の新着物件を検出！")
         message = f"🏠 新着物件（{now.strftime('%Y/%m/%d %H:%M')} 時点）\n\n"
         for item in new_list[:MAX_ITEMS]:
-            message += f"{item['title']}\n{item['url']}\n\n"
+            message += f"{item['title']}\n"
+            if item.get('access'):
+                message += f"🚃 {item['access']}\n"
+            if item.get('size'):
+                message += f"📐 {item['size']}\n"
+            message += f"{item['url']}\n\n"
         send_line_message(message.strip())
     else:
         print("📭 新着なし〜")
