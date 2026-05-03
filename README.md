@@ -12,7 +12,7 @@ GitHub Actions を使って毎日自動実行されます。
 
 | 📝 スクリプト名 | 🔍 特徴 | 🛠 使用技術 | ⚙️ 実行環境 | 📲 通知先 |
 |---|---|---|---|---|
-| `ur_checker.py` | 動的ページ対応。指定駅周辺の物件を自動取得 | Selenium + BeautifulSoup | GitHub Actionsで毎日実行 | LINEグループ |
+| `ur_checker.py` | 動的ページ対応。Seleniumでブラウザを自動操作し、BeautifulSoupでHTMLを解析してスクレイピング | Selenium + BeautifulSoup | GitHub Actionsで毎日実行 | LINEグループ |
 
 ---
 
@@ -41,15 +41,17 @@ GitHub Actions を使って毎日自動実行されます。
 
 | 技術 | 用途 |
 |---|---|
-| Selenium | ブラウザ操作・JS描画待ち |
+| Selenium | ブラウザを自動操作してJavaScriptで動的に生成されるページを取得（スクレイピング） |
 | WebDriverWait | 物件カードが表示されるまでの賢い待機処理 |
-| BeautifulSoup | HTML解析・物件情報の抽出 |
+| BeautifulSoup | 取得したHTMLを解析して物件情報を抽出（スクレイピング） |
 | requests | LINE Messaging API呼び出し |
 | 正規表現（re） | 駅名・面積の抽出・アクセス情報の整形 |
 | json | previous.jsonの読み書きによる差分管理 |
 | 環境変数（dotenv） | LINEトークンをコードに直書きせず安全に管理 |
 | 重複除去（seen_urls） | 複数駅で同じ物件が出ても通知は1回だけ |
 | pytz | タイムゾーン変換（UTC→JST）で正確な時刻表示 |
+
+> ⚠️ 本ツールはURサイトのAPIは使用せず、SeleniumとBeautifulSoupを用いたスクレイピングで情報を取得しています。個人利用目的のみで使用してください。
 
 ---
 
