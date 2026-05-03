@@ -99,11 +99,10 @@ def fetch_listings_from_url(search_url, label=""):
     cards = soup.select("div.module_cassettes_property")
     print(f"🔍 [{label}] 取得した物件数: {len(cards)}")
 
-    # デバッグ：最初の1件のステータス情報を出力
+    # デバッグ：最初の1件の全HTMLを出力
     if cards:
-        status_tag = cards[0].select_one("div.cassettes_property_status")
-        print(f"=== ステータス情報 ===")
-        print(status_tag)
+        print(f"=== カードHTML ===")
+        print(cards[0].prettify()[:3000])
 
     listings = []
     base_url = "https://www.ur-net.go.jp"
