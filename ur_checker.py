@@ -68,45 +68,34 @@ def fetch_listings_from_url(search_url, label=""):
     try:
         driver.get(search_url)
         time.sleep(5)
-
-        # ページを下にスクロールしてJS描画を促す
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(3)
         driver.execute_script("window.scrollTo(0, 0);")
         time.sleep(2)
-
         html = driver.page_source
     finally:
         driver.quit()
 
     soup = BeautifulSoup(html, "html.parser")
 
-    # 物件カードを探す（複数のセレクタを試す）
-    cards = (
-        soup.select("div.section_inner li") or
-        soup.select("ul.list_bukken li") or
-        soup.select("li.bukken") or
-        soup.select("article") or
-        []
-    )
+    # rep_bukkenコンテナの中のliを取得
+    container = soup.select_one("div.rep_bukken")
+    if not container:
+        print(f"⚠️ [{label}] rep_bukkenコンテナが見つかりません")
+        return []
 
-    print(f"🔍 [{label}] 取得した候補数: {len(cards)}")
+    cards = container.select("li")
+    print(f"🔍 [{label}] 取得した物件候補数: {len(cards)}")
 
-    # デバッグ：物件名らしきテキストを含む要素を探す
-    found_any = False
-    for tag in soup.find_all(True):
-        if tag.get("class") and any("bukken" in c or "property" in c or "room" in c for c in tag.get("class", [])):
-            print(f"  候補クラス発見: {tag.name}.{' '.join(tag.get('class', []))}")
-            found_any = True
-            break
-    if not found_any:
-        print(f"  ⚠️ [{label}] 物件関連クラスが見つかりません")
+    # デバッグ：最初のliの中身を表示
+    if cards:
+        print(f"  先頭liのテキスト: {cards[0].get_text(strip=True)[:100]}")
 
     listings = []
     base_url = "https://www.ur-net.go.jp"
 
     for card in cards:
-        name_tag = card.select_one("[class*='name'], [class*='title'], h2, h3")
+        name_tag = card.select_one("p.property_name, [class*='name'], h2, h3, p")
         if not name_tag:
             continue
 
@@ -121,7 +110,7 @@ def fetch_listings_from_url(search_url, label=""):
         href = detail_link.get("href", "")
         full_url = base_url + href if href.startswith("/") else href
 
-        size_tag = card.select_one("[class*='size'], [class*='area'], [class*='menseki']")
+        size_tag = card.select_one("[class*='size'], [class*='area']")
         size_text = size_tag.get_text(strip=True) if size_tag else ""
 
         if size_text and not is_size_ok(size_text):
@@ -137,13 +126,11 @@ def fetch_listings_from_url(search_url, label=""):
 
 def fetch_all_listings():
     targets = [
-        # 埼玉側（東武東上線）
         ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_1487&todofuken=saitama", "和光市駅"),
         ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_1489&todofuken=saitama", "朝霞駅"),
         ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_1488&todofuken=saitama", "東朝霞駅"),
         ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_1490&todofuken=saitama", "北朝霞駅・朝霞台駅"),
         ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_1491&todofuken=saitama", "志木駅"),
-        # 東京側（京浜東北線・山手線・りんかい線周辺）
         ("https://www.ur-net.go.jp/chintai/kanto/tokyo/result/?line_station=3600_1062&todofuken=tokyo", "大井町駅"),
         ("https://www.ur-net.go.jp/chintai/kanto/tokyo/result/?line_station=3600_1052&todofuken=tokyo", "東十条駅"),
         ("https://www.ur-net.go.jp/chintai/kanto/tokyo/result/?line_station=3600_1051&todofuken=tokyo", "王子駅"),
