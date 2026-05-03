@@ -91,7 +91,6 @@ def fetch_listings_from_url(search_url, label=""):
     base_url = "https://www.ur-net.go.jp"
 
     for card in cards:
-        # 物件名
         name_tag = card.select_one("div.cassettes_property_information p, h2, h3")
         if not name_tag:
             continue
@@ -99,30 +98,22 @@ def fetch_listings_from_url(search_url, label=""):
         if not title or len(title) < 2:
             continue
 
-        # リンク
         detail_link = card.select_one("a")
         if not detail_link:
             continue
         href = detail_link.get("href", "")
         full_url = base_url + href if href.startswith("/") else href
 
-        # アクセス情報（路線・徒歩分数）
         access_tags = card.select("div.cassettes_property_information li")
-        access_text = ""
-        if access_tags:
-            access_text = access_tags[0].get_text(strip=True)
+        access_text = access_tags[0].get_text(strip=True) if access_tags else ""
 
-        # 面積・間取り情報
         info_tag = card.select_one("div.cassettes_property_infolistwrapper")
         info_text = info_tag.get_text(strip=True) if info_tag else ""
 
-        # 面積チェック
         size_match = re.search(r"([\d.]+)\s*㎡", info_text)
         if size_match:
             if float(size_match.group(1)) < 60.0:
                 continue
-
-        # 面積を抽出
         size_str = f"{size_match.group(1)}㎡" if size_match else ""
 
         listings.append({
@@ -137,13 +128,11 @@ def fetch_listings_from_url(search_url, label=""):
 
 def fetch_all_listings():
     targets = [
-        # 埼玉側（東武東上線）
         ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_3294&todofuken=saitama", "和光市駅"),
         ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_1488&todofuken=saitama", "朝霞駅"),
         ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_1489&todofuken=saitama", "朝霞台駅"),
         ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=3800_1940&todofuken=saitama", "北朝霞駅"),
         ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_2225&todofuken=saitama", "志木駅"),
-        # 東京側
         ("https://www.ur-net.go.jp/chintai/kanto/tokyo/result/?line_station=3600_1062&todofuken=tokyo", "大井町駅"),
         ("https://www.ur-net.go.jp/chintai/kanto/tokyo/result/?line_station=3600_1052&todofuken=tokyo", "東十条駅"),
         ("https://www.ur-net.go.jp/chintai/kanto/tokyo/result/?line_station=3600_1051&todofuken=tokyo", "王子駅"),
@@ -154,9 +143,14 @@ def fetch_all_listings():
     ]
 
     all_listings = []
+    seen_urls = set()  # URL重複除去用
+
     for url, label in targets:
         listings = fetch_listings_from_url(url, label)
-        all_listings += listings
+        for item in listings:
+            if item["url"] not in seen_urls:
+                seen_urls.add(item["url"])
+                all_listings.append(item)
 
     return all_listings
 
