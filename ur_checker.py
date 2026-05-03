@@ -71,25 +71,63 @@ def fetch_listings_from_url(search_url, label=""):
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(5)
 
-        # JS実行で物件数を確認
-        count = driver.execute_script("""
-            var items = document.querySelectorAll('.cassette_content, .result_cassette, .bukken_cassette, [class*="cassette"]');
-            return items.length;
-        """)
-        print(f"🔍 [{label}] JS経由で見つかった要素数: {count}")
+        # cassette要素が出るまで待機
+        try:
+            WebDriverWait(driver, 15).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, "[class*='cassette']"))
+            )
+        except:
+            print(f"⚠️ [{label}] cassette要素の待機タイムアウト")
 
-        # JS実行でページのテキストから物件情報を取得
-        text = driver.execute_script("return document.body.innerText;")
-        print(f"  ページテキスト先頭300文字: {text[:300]}")
-
+        time.sleep(3)
         html = driver.page_source
     finally:
         driver.quit()
 
-    return []
+    soup = BeautifulSoup(html, "html.parser")
+
+    # cassette系のクラスを持つ物件カードを取得
+    cards = soup.select("[class*='cassette_content'], [class*='result_cassette'], [class*='bukken_cassette']")
+    print(f"🔍 [{label}] 取得した物件候補数: {len(cards)}")
+
+    if cards:
+        print(f"  先頭カードのテキスト: {cards[0].get_text(strip=True)[:100]}")
+
+    listings = []
+    base_url = "https://www.ur-net.go.jp"
+
+    for card in cards:
+        name_tag = card.select_one("[class*='name'], [class*='title'], h2, h3")
+        if not name_tag:
+            continue
+
+        title = name_tag.get_text(strip=True)
+        if not title or len(title) < 3:
+            continue
+
+        detail_link = card.select_one("a")
+        if not detail_link:
+            continue
+
+        href = detail_link.get("href", "")
+        full_url = base_url + href if href.startswith("/") else href
+
+        size_tag = card.select_one("[class*='size'], [class*='area']")
+        size_text = size_tag.get_text(strip=True) if size_tag else ""
+
+        if size_text and not is_size_ok(size_text):
+            continue
+
+        listings.append({
+            "title": f"[{label}] {title} {size_text}".strip(),
+            "url": full_url
+        })
+
+    print(f"✅ [{label}] 条件一致: {len(listings)}件")
+    return listings
 
 def fetch_all_listings():
-    # デバッグ用に1駅だけ実行
+    # デバッグ用に1駅だけ
     targets = [
         ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_1488&todofuken=saitama", "東朝霞駅"),
     ]
