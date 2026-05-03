@@ -48,16 +48,28 @@
     "url": "https://www.ur-net.go.jp/chintai/information/2025/05/1147.html"
   },
   {
-    "title": "[和光市駅] 西上尾第二",
-    "url": "https://www.ur-net.go.jp/chintai/kanto/saitama/50_1270.html"
+    "title": "[和光市駅] デュプレ西大和",
+    "url": "https://www.ur-net.go.jp/chintai/kanto/saitama/50_3150.html"
   },
   {
-    "title": "[和光市駅] 西上尾第一",
-    "url": "https://www.ur-net.go.jp/chintai/kanto/saitama/50_1230.html"
+    "title": "[和光市駅] 西大和",
+    "url": "https://www.ur-net.go.jp/chintai/kanto/saitama/50_1010.html"
   },
   {
-    "title": "[和光市駅] デュプレ西上尾",
-    "url": "https://www.ur-net.go.jp/chintai/kanto/saitama/50_2490.html"
+    "title": "[和光市駅] 大和新倉",
+    "url": "https://www.ur-net.go.jp/chintai/kanto/saitama/50_1440.html"
+  },
+  {
+    "title": "[和光市駅] 西大和第二",
+    "url": "https://www.ur-net.go.jp/chintai/kanto/saitama/50_2720.html"
+  },
+  {
+    "title": "[和光市駅] コンフォール東朝霞",
+    "url": "https://www.ur-net.go.jp/chintai/kanto/saitama/50_4011.html"
+  },
+  {
+    "title": "[和光市駅] コンフォール和光西大和",
+    "url": "https://www.ur-net.go.jp/chintai/kanto/saitama/50_4120.html"
   },
   {
     "title": "[朝霞駅] 朝霞膝折",
@@ -72,7 +84,27 @@
     "url": "https://www.ur-net.go.jp/chintai/kanto/saitama/50_1960.html"
   },
   {
-    "title": "[志木駅] リバーピア吾妻橋 ライフタワー",
-    "url": "https://www.ur-net.go.jp/chintai/kanto/tokyo/20_4440.html"
+    "title": "[志木駅] 清瀬旭が丘",
+    "url": "https://www.ur-net.go.jp/chintai/kanto/tokyo/20_1580.html"
+  },
+  {
+    "title": "[志木駅] 清瀬旭が丘第二",
+    "url": "https://www.ur-net.go.jp/chintai/kanto/tokyo/20_3610.html"
+  },
+  {
+    "title": "[志木駅] 新座",
+    "url": "https://www.ur-net.go.jp/chintai/kanto/saitama/50_1310.html"
+  },
+  {
+    "title": "[志木駅] 朝霞膝折",
+    "url": "https://www.ur-net.go.jp/chintai/kanto/saitama/50_1580.html"
+  },
+  {
+    "title": "[志木駅] 朝霞浜崎",
+    "url": "https://www.ur-net.go.jp/chintai/kanto/saitama/50_1700.html"
+  },
+  {
+    "title": "[志木駅] 朝霞膝折第二",
+    "url": "https://www.ur-net.go.jp/chintai/kanto/saitama/50_1960.html"
   }
 ]
