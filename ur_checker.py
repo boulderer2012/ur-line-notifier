@@ -65,6 +65,14 @@ def fetch_listings_from_url(search_url, label=""):
     time.sleep(10)
 
     soup = BeautifulSoup(driver.page_source, "html.parser")
+
+    # デバッグ用：最初のliタグのHTMLを出力
+    for card in soup.select("li")[:3]:
+    if card.get_text(strip=True):
+        print("=== LI HTML ===")
+        print(card)
+        break
+        
     driver.quit()
 
     listings = []
