@@ -122,10 +122,10 @@ def fetch_listings_from_url(search_url, label=""):
 def fetch_all_listings():
     targets = [
         # 埼玉側（東武東上線）
-        ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_1487&todofuken=saitama", "和光市駅"),
+        ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_3294&todofuken=saitama", "和光市駅"),
         ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_1489&todofuken=saitama", "朝霞駅"),
         ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_1490&todofuken=saitama", "北朝霞駅・朝霞台駅"),
-        ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_1491&todofuken=saitama", "志木駅"),
+        ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_2225&todofuken=saitama", "志木駅"),
         # 東京側
         ("https://www.ur-net.go.jp/chintai/kanto/tokyo/result/?line_station=3600_1062&todofuken=tokyo", "大井町駅"),
         ("https://www.ur-net.go.jp/chintai/kanto/tokyo/result/?line_station=3600_1052&todofuken=tokyo", "東十条駅"),
