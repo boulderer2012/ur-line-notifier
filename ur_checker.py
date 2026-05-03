@@ -99,6 +99,12 @@ def fetch_listings_from_url(search_url, label=""):
     cards = soup.select("div.module_cassettes_property")
     print(f"🔍 [{label}] 取得した物件数: {len(cards)}")
 
+    # デバッグ：最初の1件のステータス情報を出力
+    if cards:
+        status_tag = cards[0].select_one("div.cassettes_property_status")
+        print(f"=== ステータス情報 ===")
+        print(status_tag)
+
     listings = []
     base_url = "https://www.ur-net.go.jp"
 
@@ -119,13 +125,12 @@ def fetch_listings_from_url(search_url, label=""):
         access_tags = card.select("div.cassettes_property_information li")
         access_text = access_tags[0].get_text(strip=True) if access_tags else ""
 
-        # 面積チェック
-        # info_tag = card.select_one("div.cassettes_property_infolistwrapper")
-        # info_text = info_tag.get_text(strip=True) if info_tag else ""
-        # size_match = re.search(r"([\d.]+)\s*㎡", info_text)
-        # if size_match:
-            # if float(size_match.group(1)) < 60.0:
-                # continue
+        info_tag = card.select_one("div.cassettes_property_infolistwrapper")
+        info_text = info_tag.get_text(strip=True) if info_tag else ""
+        size_match = re.search(r"([\d.]+)\s*㎡", info_text)
+        if size_match:
+            if float(size_match.group(1)) < 60.0:
+                continue
 
         nearest = extract_nearest_station(access_text)
         station_label = nearest if nearest else label
@@ -140,6 +145,7 @@ def fetch_listings_from_url(search_url, label=""):
     return listings
 
 def fetch_all_listings():
+    # デバッグ用に1駅だけ
     targets = [
     ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_2225&todofuken=saitama", "志木駅"),
     ]
