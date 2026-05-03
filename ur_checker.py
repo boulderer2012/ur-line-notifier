@@ -67,25 +67,24 @@ def fetch_listings_from_url(search_url, label=""):
     driver = create_driver()
     try:
         driver.get(search_url)
-        time.sleep(5)
+        time.sleep(8)
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        time.sleep(3)
-        driver.execute_script("window.scrollTo(0, 0);")
-        time.sleep(2)
+        time.sleep(5)
+
+        # JS実行で物件数を確認
+        count = driver.execute_script("""
+            var items = document.querySelectorAll('.cassette_content, .result_cassette, .bukken_cassette, [class*="cassette"]');
+            return items.length;
+        """)
+        print(f"🔍 [{label}] JS経由で見つかった要素数: {count}")
+
+        # JS実行でページのテキストから物件情報を取得
+        text = driver.execute_script("return document.body.innerText;")
+        print(f"  ページテキスト先頭300文字: {text[:300]}")
+
         html = driver.page_source
     finally:
         driver.quit()
-
-    soup = BeautifulSoup(html, "html.parser")
-
-    container = soup.select_one("div.rep_bukken")
-    if not container:
-        print(f"⚠️ [{label}] rep_bukkenコンテナが見つかりません")
-        return []
-
-    # デバッグ：コンテナの直下の子要素を全部表示
-    print(f"=== [{label}] コンテナ内HTML（先頭500文字）===")
-    print(str(container)[:500])
 
     return []
 
