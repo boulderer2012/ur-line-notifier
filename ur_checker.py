@@ -49,40 +49,69 @@ def create_driver():
     options.add_argument("--headless")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--window-size=1920,1080")
+    options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
     driver = webdriver.Chrome(options=options)
     return driver
 
 def is_size_ok(size_str):
     try:
-        return float(size_str.replace("㎡", "").strip()) >= 60.0
+        size = re.search(r"[\d.]+", size_str)
+        if size:
+            return float(size.group()) >= 60.0
     except:
-        return False
+        pass
+    return False
 
-# 🔹 路線・駅URLから物件を取得する汎用関数
 def fetch_listings_from_url(search_url, label=""):
     driver = create_driver()
-    driver.get(search_url)
-
-    # 物件リストが読み込まれるまで待機
-    wait = WebDriverWait(driver, 30)
     try:
-        wait.until(EC.presence_of_element_located((By.CLASS_NAME, "bukken_list")))
-        time.sleep(3)
-    except:
-        print(f"⚠️ [{label}] 物件リスト読み込みタイムアウト（空き物件なしの可能性）")
+        driver.get(search_url)
+        time.sleep(5)
 
-    soup = BeautifulSoup(driver.page_source, "html.parser")
-    driver.quit()
+        # ページを下にスクロールしてJS描画を促す
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        time.sleep(3)
+        driver.execute_script("window.scrollTo(0, 0);")
+        time.sleep(2)
+
+        html = driver.page_source
+    finally:
+        driver.quit()
+
+    soup = BeautifulSoup(html, "html.parser")
+
+    # 物件カードを探す（複数のセレクタを試す）
+    cards = (
+        soup.select("div.section_inner li") or
+        soup.select("ul.list_bukken li") or
+        soup.select("li.bukken") or
+        soup.select("article") or
+        []
+    )
+
+    print(f"🔍 [{label}] 取得した候補数: {len(cards)}")
+
+    # デバッグ：物件名らしきテキストを含む要素を探す
+    found_any = False
+    for tag in soup.find_all(True):
+        if tag.get("class") and any("bukken" in c or "property" in c or "room" in c for c in tag.get("class", [])):
+            print(f"  候補クラス発見: {tag.name}.{' '.join(tag.get('class', []))}")
+            found_any = True
+            break
+    if not found_any:
+        print(f"  ⚠️ [{label}] 物件関連クラスが見つかりません")
 
     listings = []
     base_url = "https://www.ur-net.go.jp"
-    cards = soup.select("li.bukken_list")
-
-    print(f"🔍 [{label}] 取得した物件数: {len(cards)}")
 
     for card in cards:
-        name_tag = card.select_one("p.property_name")
+        name_tag = card.select_one("[class*='name'], [class*='title'], h2, h3")
         if not name_tag:
+            continue
+
+        title = name_tag.get_text(strip=True)
+        if not title or len(title) < 3:
             continue
 
         detail_link = card.select_one("a")
@@ -91,37 +120,37 @@ def fetch_listings_from_url(search_url, label=""):
 
         href = detail_link.get("href", "")
         full_url = base_url + href if href.startswith("/") else href
-        title = name_tag.text.strip()
 
-        size = card.select_one("p.size")
-        size_text = size.text.strip() if size else ""
+        size_tag = card.select_one("[class*='size'], [class*='area'], [class*='menseki']")
+        size_text = size_tag.get_text(strip=True) if size_tag else ""
 
-        if not is_size_ok(size_text):
+        if size_text and not is_size_ok(size_text):
             continue
 
-        layout = card.select_one("p.layout")
-        floor = card.select_one("p.floor")
-        layout_text = layout.text.strip() if layout else ""
-        floor_text = floor.text.strip() if floor else ""
-
         listings.append({
-            "title": f"[{label}] {title} {layout_text} {size_text} {floor_text}",
+            "title": f"[{label}] {title} {size_text}".strip(),
             "url": full_url
         })
 
     print(f"✅ [{label}] 条件一致: {len(listings)}件")
     return listings
 
-# 🔹 全対象エリアから物件を取得
 def fetch_all_listings():
     targets = [
-        ("https://www.ur-net.go.jp/chintai/kanto/tokyo/result/?line=3600&todofuken=tokyo", "JR京浜東北線"),
-        ("https://www.ur-net.go.jp/chintai/kanto/tokyo/result/?line=5300&todofuken=tokyo", "JR山手線"),
-        ("https://www.ur-net.go.jp/chintai/kanto/tokyo/result/?line=56800&todofuken=tokyo", "東京メトロ副都心線"),
+        # 埼玉側（東武東上線）
         ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_1487&todofuken=saitama", "和光市駅"),
         ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_1489&todofuken=saitama", "朝霞駅"),
         ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_1488&todofuken=saitama", "東朝霞駅"),
-        ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_1490&todofuken=saitama", "北朝霞駅"),
+        ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_1490&todofuken=saitama", "北朝霞駅・朝霞台駅"),
+        ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_1491&todofuken=saitama", "志木駅"),
+        # 東京側（京浜東北線・山手線・りんかい線周辺）
+        ("https://www.ur-net.go.jp/chintai/kanto/tokyo/result/?line_station=3600_1062&todofuken=tokyo", "大井町駅"),
+        ("https://www.ur-net.go.jp/chintai/kanto/tokyo/result/?line_station=3600_1052&todofuken=tokyo", "東十条駅"),
+        ("https://www.ur-net.go.jp/chintai/kanto/tokyo/result/?line_station=3600_1051&todofuken=tokyo", "王子駅"),
+        ("https://www.ur-net.go.jp/chintai/kanto/tokyo/result/?line_station=3600_1048&todofuken=tokyo", "赤羽駅"),
+        ("https://www.ur-net.go.jp/chintai/kanto/tokyo/result/?line_station=3600_1049&todofuken=tokyo", "十条駅"),
+        ("https://www.ur-net.go.jp/chintai/kanto/tokyo/result/?line_station=5300_1109&todofuken=tokyo", "池袋駅"),
+        ("https://www.ur-net.go.jp/chintai/kanto/tokyo/result/?line_station=5300_1110&todofuken=tokyo", "板橋駅"),
     ]
 
     all_listings = []
@@ -131,7 +160,6 @@ def fetch_all_listings():
 
     return all_listings
 
-# 🔹 UR公式お知らせページから新築物件を取得
 def fetch_ur_news_listings():
     url = "https://www.ur-net.go.jp/chintai/information/"
     driver = create_driver()
