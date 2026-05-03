@@ -54,6 +54,14 @@ def create_driver():
     driver = webdriver.Chrome(options=options)
     return driver
 
+def format_access(access_text):
+    # 「※」以降を削除
+    access_text = re.sub(r'※.*', '', access_text).strip()
+    # 路線ごとに改行（駅名パターンで分割）
+    lines = re.split(r'(?=東武|JR|東京メトロ|西武|京急|都営|小田急|京王|東急|相鉄|つくば)', access_text)
+    lines = [l.strip() for l in lines if l.strip()]
+    return '\n'.join(lines)
+
 def fetch_listings_from_url(search_url, label=""):
     driver = create_driver()
     try:
@@ -199,7 +207,8 @@ def main():
         for item in new_list[:MAX_ITEMS]:
             message += f"{item['title']}\n"
             if item.get('access'):
-                message += f"🚃 {item['access']}\n"
+                formatted = format_access(item['access'])
+                message += f"🚃\n{formatted}\n"
             message += f"{item['url']}\n\n"
         send_line_message(message.strip())
     else:
