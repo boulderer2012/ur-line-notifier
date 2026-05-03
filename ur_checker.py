@@ -76,7 +76,9 @@ def fetch_listings_from_url(search_url, label=""):
                 EC.presence_of_element_located((By.CLASS_NAME, "module_cassettes_property"))
             )
         except:
-            print(f"⚠️ [{label}] 物件カード待機タイムアウト（空き物件なしの可能性）")
+            # タイムアウト＝空き物件なし、正常終了
+            print(f"📭 [{label}] 空き物件なし")
+            return []
 
         html = driver.page_source
     finally:
