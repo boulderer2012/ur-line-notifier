@@ -55,12 +55,17 @@ def create_driver():
     return driver
 
 def format_access(access_text):
-    # 「※」以降を削除
     access_text = re.sub(r'※.*', '', access_text).strip()
-    # 路線ごとに改行（駅名パターンで分割）
     lines = re.split(r'(?=東武|JR|東京メトロ|西武|京急|都営|小田急|京王|東急|相鉄|つくば)', access_text)
     lines = [l.strip() for l in lines if l.strip()]
     return '\n'.join(lines)
+
+def extract_nearest_station(access_text):
+    # 最初の駅名を抽出（「○○」駅 の形式）
+    match = re.search(r'「(.+?)」駅', access_text)
+    if match:
+        return match.group(1) + "駅"
+    return None
 
 def fetch_listings_from_url(search_url, label=""):
     driver = create_driver()
@@ -106,8 +111,12 @@ def fetch_listings_from_url(search_url, label=""):
         access_tags = card.select("div.cassettes_property_information li")
         access_text = access_tags[0].get_text(strip=True) if access_tags else ""
 
+        # アクセス情報から最寄り駅を抽出してラベルに使う
+        nearest = extract_nearest_station(access_text)
+        station_label = nearest if nearest else label
+
         listings.append({
-            "title": f"[{label}] {title}",
+            "title": f"[{station_label}] {title}",
             "url": full_url,
             "access": access_text
         })
