@@ -62,24 +62,23 @@ def is_size_ok(size_str):
 def fetch_listings_from_url(search_url, label=""):
     driver = create_driver()
     driver.get(search_url)
-    time.sleep(10)
+
+    # 物件リストが読み込まれるまで待機
+    wait = WebDriverWait(driver, 30)
+    try:
+        wait.until(EC.presence_of_element_located((By.CLASS_NAME, "bukken_list")))
+        time.sleep(3)
+    except:
+        print(f"⚠️ [{label}] 物件リスト読み込みタイムアウト（空き物件なしの可能性）")
 
     soup = BeautifulSoup(driver.page_source, "html.parser")
-
-    # デバッグ用：最初のliタグのHTMLを出力
-    for card in soup.select("li")[:3]:
-        if card.get_text(strip=True):
-            print("=== LI HTML ===")
-            print(card)
-            break
-        
     driver.quit()
 
     listings = []
     base_url = "https://www.ur-net.go.jp"
-    cards = soup.select("li")
+    cards = soup.select("li.bukken_list")
 
-    print(f"🔍 [{label}] 取得したliタグ数: {len(cards)}")
+    print(f"🔍 [{label}] 取得した物件数: {len(cards)}")
 
     for card in cards:
         name_tag = card.select_one("p.property_name")
@@ -116,11 +115,9 @@ def fetch_listings_from_url(search_url, label=""):
 # 🔹 全対象エリアから物件を取得
 def fetch_all_listings():
     targets = [
-        # 東京路線（沿線URL）
         ("https://www.ur-net.go.jp/chintai/kanto/tokyo/result/?line=3600&todofuken=tokyo", "JR京浜東北線"),
         ("https://www.ur-net.go.jp/chintai/kanto/tokyo/result/?line=5300&todofuken=tokyo", "JR山手線"),
         ("https://www.ur-net.go.jp/chintai/kanto/tokyo/result/?line=56800&todofuken=tokyo", "東京メトロ副都心線"),
-        # 埼玉側駅（駅単位URL）
         ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_1487&todofuken=saitama", "和光市駅"),
         ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_1489&todofuken=saitama", "朝霞駅"),
         ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_1488&todofuken=saitama", "東朝霞駅"),
