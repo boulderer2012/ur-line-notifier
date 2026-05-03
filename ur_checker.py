@@ -85,7 +85,17 @@ def fetch_renovated_higashi_asaka():
     url = "https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_1488&todofuken=saitama"
     driver = create_driver()
     driver.get(url)
-    time.sleep(5)
+    
+    # 物件カードが読み込まれるまで待機
+    wait = WebDriverWait(driver, 20)
+    try:
+        wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "div.section_inner ul li")))
+    except:
+        print("⚠️ 物件カードの読み込みタイムアウト")
+        driver.quit()
+        return []
+
+    time.sleep(3)  # 念のため追加待機
 
     soup = BeautifulSoup(driver.page_source, "html.parser")
     driver.quit()
@@ -93,6 +103,8 @@ def fetch_renovated_higashi_asaka():
     listings = []
     base_url = "https://www.ur-net.go.jp"
     cards = soup.select("div.section_inner > ul > li")
+    
+    print(f"🔍 取得したカード数: {len(cards)}")  # デバッグ用
 
     for card in cards:
         name_tag = card.select_one("p.property_name")
@@ -103,29 +115,30 @@ def fetch_renovated_higashi_asaka():
         if not detail_link:
             continue
 
-        url = base_url + detail_link.get("href")
+        href = detail_link.get("href")
+        full_url = base_url + href
         title = name_tag.text.strip()
 
         layout = card.select_one("p.layout")
         size = card.select_one("p.size")
         floor = card.select_one("p.floor")
-        remarks = card.select_one("p.comment")
 
         layout_text = layout.text.strip() if layout else ""
         size_text = size.text.strip() if size else ""
         floor_text = floor.text.strip() if floor else ""
 
-        # 条件を満たす物件のみ通知対象に
+        print(f"🏠 発見: {title} {layout_text} {size_text} {floor_text}")  # デバッグ用
+
         if not (is_layout_ok(layout_text) and is_size_ok(size_text) and is_floor_ok(floor_text)):
             continue
 
         listings.append({
             "title": f"{title} {layout_text} {size_text} {floor_text}",
-            "url": url
+            "url": full_url
         })
 
     return listings
-
+    
 # 🔹 UR公式お知らせページから新築物件を取得＋東朝霞リノベ物件も追加
 def fetch_ur_listings():
     url = "https://www.ur-net.go.jp/chintai/information/"
