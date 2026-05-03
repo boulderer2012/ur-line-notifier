@@ -6,24 +6,17 @@ on:
 jobs:
   check-and-ping:
     runs-on: ubuntu-latest
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
-      - name: 📥 リポジトリをチェックアウト
-        uses: actions/checkout@v4
-      - name: 🐍 Pythonをセットアップ（バージョン3.10）
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-      - name: 📦 依存パッケージをインストール
-        run: pip install -r requirements.txt
-      - name: 🔍 Seleniumで詳細チェック（動的ページ対応）
-        env:
+      - run: pip install -r requirements.txt
+      - env:
           LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
           LINE_GROUP_ID: ${{ secrets.LINE_GROUP_ID }}
         run: python ur_checker.py
-      - name: 💾 previous.jsonをコミット
-        run: |
+      - run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add previous.json
