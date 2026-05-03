@@ -61,11 +61,19 @@ def format_access(access_text):
     return '\n'.join(lines)
 
 def extract_nearest_station(access_text):
-    # 最初の駅名を抽出（「○○」駅 の形式）
     match = re.search(r'「(.+?)」駅', access_text)
     if match:
         return match.group(1) + "駅"
     return None
+
+def is_size_ok(size_str):
+    try:
+        size = re.search(r"[\d.]+", size_str)
+        if size:
+            return float(size.group()) >= 60.0
+    except:
+        pass
+    return False
 
 def fetch_listings_from_url(search_url, label=""):
     driver = create_driver()
@@ -111,7 +119,14 @@ def fetch_listings_from_url(search_url, label=""):
         access_tags = card.select("div.cassettes_property_information li")
         access_text = access_tags[0].get_text(strip=True) if access_tags else ""
 
-        # アクセス情報から最寄り駅を抽出してラベルに使う
+        # 面積チェック
+        info_tag = card.select_one("div.cassettes_property_infolistwrapper")
+        info_text = info_tag.get_text(strip=True) if info_tag else ""
+        size_match = re.search(r"([\d.]+)\s*㎡", info_text)
+        if size_match:
+            if float(size_match.group(1)) < 60.0:
+                continue
+
         nearest = extract_nearest_station(access_text)
         station_label = nearest if nearest else label
 
