@@ -1,27 +1,22 @@
 name: Check UR Listings and Ping Render
-
 on:
   schedule:
-    - cron: '12 1 * * *' # JSTで10:12に毎日実行
-
-  workflow_dispatch:       # 手動実行も可能
-
+    - cron: '12 1 * * *'
+  workflow_dispatch:
 jobs:
   check-and-ping:
     runs-on: ubuntu-latest
-
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - name: 📥 リポジトリをチェックアウト
         uses: actions/checkout@v4
-
       - name: 🐍 Pythonをセットアップ（バージョン3.10）
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-
       - name: 📦 依存パッケージをインストール
         run: pip install -r requirements.txt
-
       - name: 🔍 Seleniumで詳細チェック（動的ページ対応）
         env:
           LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
