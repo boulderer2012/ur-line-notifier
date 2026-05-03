@@ -78,66 +78,21 @@ def fetch_listings_from_url(search_url, label=""):
 
     soup = BeautifulSoup(html, "html.parser")
 
-    # rep_bukkenコンテナの中のliを取得
     container = soup.select_one("div.rep_bukken")
     if not container:
         print(f"⚠️ [{label}] rep_bukkenコンテナが見つかりません")
         return []
 
-    cards = container.select("li")
-    print(f"🔍 [{label}] 取得した物件候補数: {len(cards)}")
+    # デバッグ：コンテナの直下の子要素を全部表示
+    print(f"=== [{label}] コンテナ内HTML（先頭500文字）===")
+    print(str(container)[:500])
 
-    # デバッグ：最初のliの中身を表示
-    if cards:
-        print(f"  先頭liのテキスト: {cards[0].get_text(strip=True)[:100]}")
-
-    listings = []
-    base_url = "https://www.ur-net.go.jp"
-
-    for card in cards:
-        name_tag = card.select_one("p.property_name, [class*='name'], h2, h3, p")
-        if not name_tag:
-            continue
-
-        title = name_tag.get_text(strip=True)
-        if not title or len(title) < 3:
-            continue
-
-        detail_link = card.select_one("a")
-        if not detail_link:
-            continue
-
-        href = detail_link.get("href", "")
-        full_url = base_url + href if href.startswith("/") else href
-
-        size_tag = card.select_one("[class*='size'], [class*='area']")
-        size_text = size_tag.get_text(strip=True) if size_tag else ""
-
-        if size_text and not is_size_ok(size_text):
-            continue
-
-        listings.append({
-            "title": f"[{label}] {title} {size_text}".strip(),
-            "url": full_url
-        })
-
-    print(f"✅ [{label}] 条件一致: {len(listings)}件")
-    return listings
+    return []
 
 def fetch_all_listings():
+    # デバッグ用に1駅だけ実行
     targets = [
-        ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_1487&todofuken=saitama", "和光市駅"),
-        ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_1489&todofuken=saitama", "朝霞駅"),
         ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_1488&todofuken=saitama", "東朝霞駅"),
-        ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_1490&todofuken=saitama", "北朝霞駅・朝霞台駅"),
-        ("https://www.ur-net.go.jp/chintai/kanto/saitama/result/?line_station=14400_1491&todofuken=saitama", "志木駅"),
-        ("https://www.ur-net.go.jp/chintai/kanto/tokyo/result/?line_station=3600_1062&todofuken=tokyo", "大井町駅"),
-        ("https://www.ur-net.go.jp/chintai/kanto/tokyo/result/?line_station=3600_1052&todofuken=tokyo", "東十条駅"),
-        ("https://www.ur-net.go.jp/chintai/kanto/tokyo/result/?line_station=3600_1051&todofuken=tokyo", "王子駅"),
-        ("https://www.ur-net.go.jp/chintai/kanto/tokyo/result/?line_station=3600_1048&todofuken=tokyo", "赤羽駅"),
-        ("https://www.ur-net.go.jp/chintai/kanto/tokyo/result/?line_station=3600_1049&todofuken=tokyo", "十条駅"),
-        ("https://www.ur-net.go.jp/chintai/kanto/tokyo/result/?line_station=5300_1109&todofuken=tokyo", "池袋駅"),
-        ("https://www.ur-net.go.jp/chintai/kanto/tokyo/result/?line_station=5300_1110&todofuken=tokyo", "板橋駅"),
     ]
 
     all_listings = []
