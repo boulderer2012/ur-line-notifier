@@ -68,10 +68,10 @@ def fetch_listings_from_url(search_url, label=""):
 
     # デバッグ用：最初のliタグのHTMLを出力
     for card in soup.select("li")[:3]:
-    if card.get_text(strip=True):
-        print("=== LI HTML ===")
-        print(card)
-        break
+        if card.get_text(strip=True):
+            print("=== LI HTML ===")
+            print(card)
+            break
         
     driver.quit()
 
